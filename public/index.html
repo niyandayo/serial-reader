@@ -21,69 +21,54 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       max-width: 480px;
       margin: 0 auto;
-      padding: 24px 16px 40px;
+      padding: 20px 16px 40px;
       background: var(--bg);
       color: var(--text);
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    .header { text-align: center; margin-bottom: 16px; }
     .header h1 {
-      font-size: 1.35rem;
-      margin: 0 0 6px;
+      font-size: 1.3rem;
+      margin: 0 0 4px;
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary-dark), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .header p {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin: 0;
-    }
+    .header p { font-size: 0.75rem; color: var(--muted); margin: 0; }
 
     .upload-card {
+      display: block;
       border: 2px dashed #c4b5fd;
-      border-radius: 16px;
-      padding: 28px 16px;
+      border-radius: 14px;
+      padding: 22px 14px;
       text-align: center;
       background: var(--card);
       cursor: pointer;
-      transition: all 0.2s ease;
       box-shadow: 0 4px 12px rgba(139, 92, 246, 0.05);
     }
-    .upload-card:active {
-      transform: scale(0.98);
-      background: var(--primary-light);
-    }
-    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
-    .upload-label { font-weight: 600; font-size: 0.95rem; color: var(--primary-dark); }
-    .upload-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .upload-card:active { background: var(--primary-light); }
+    .upload-icon { font-size: 1.8rem; margin-bottom: 4px; }
+    .upload-label { font-weight: 700; font-size: 0.95rem; color: var(--primary-dark); }
+    .upload-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
 
     .btn-main {
       width: 100%;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
       border: none;
-      padding: 14px;
+      padding: 13px;
       border-radius: 12px;
       font-weight: 700;
       font-size: 1rem;
       cursor: pointer;
-      margin-top: 14px;
+      margin-top: 12px;
       box-shadow: 0 4px 14px rgba(236, 72, 153, 0.25);
-      transition: opacity 0.2s;
     }
-    .btn-main:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
     #status {
-      margin: 16px 0;
+      margin: 14px 0 8px;
       font-size: 0.85rem;
       color: var(--primary-dark);
       text-align: center;
@@ -91,21 +76,14 @@
       min-height: 20px;
     }
 
-    .result-section {
-      margin-top: 20px;
-      display: none;
-    }
+    .result-section { margin-top: 16px; display: none; }
     .result-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
-    .result-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text);
-    }
+    .result-title { font-size: 0.9rem; font-weight: 700; }
     .btn-all-copy {
       background: var(--card);
       border: 1px solid #c4b5fd;
@@ -113,15 +91,11 @@
       padding: 6px 12px;
       border-radius: 8px;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
 
-    .code-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .code-list { display: flex; flex-direction: column; gap: 8px; }
     .code-item {
       background: var(--card);
       border: 1px solid #e9d5ff;
@@ -130,69 +104,49 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      transition: background-color 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
-    .code-item.copied {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-    }
-    .code-item.copied .code-text {
-      color: #9ca3af;
-      text-decoration: line-through;
-    }
-    .code-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      overflow: hidden;
-    }
-    .code-num {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--primary);
-      min-width: 20px;
-    }
+    .code-item.copied { background: #f3f4f6; border-color: #d1d5db; }
+    .code-item.copied .code-text { color: #9ca3af; text-decoration: line-through; }
+    .code-left { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+    .code-num { font-size: 0.8rem; font-weight: 700; color: var(--primary); min-width: 28px; }
     .code-text {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.05em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .code-error { color: #ef4444; font-size: 0.8rem; }
     .btn-copy-one {
       background: var(--primary-light);
       color: var(--primary-dark);
       border: none;
-      padding: 8px 12px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.2s;
     }
-    .btn-copy-one.copied-btn {
-      background: #e5e7eb;
-      color: #4b5563;
-    }
+    .btn-copy-one.copied-btn { background: #e5e7eb; color: #4b5563; }
   </style>
 </head>
 <body>
 
   <div class="header">
     <h1>✨ シリアル一括読取ツール</h1>
-    <p>シリアル用紙を撮るだけ！まとめて高速スキャン</p>
+    <p>シリアル用紙を撮るだけ！まとめて超速スキャン</p>
   </div>
 
-  <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+  <label class="upload-card" for="fileInput">
     <div class="upload-icon">📸</div>
     <div class="upload-label" id="fileLabel">シリアル用紙の写真を選択</div>
-    <div class="upload-sub">複数枚をまとめて選択できます</div>
-    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" onchange="updateLabel(this.files)">
-  </div>
+    <div class="upload-sub">複数枚まとめて選択OK</div>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+  </label>
 
   <button class="btn-main" id="runBtn" onclick="processImages()">読み取り開始</button>
   <div id="status"></div>
@@ -209,40 +163,65 @@
     let files = [];
     let extractedCodes = [];
 
-    function updateLabel(selected) {
-      files = Array.from(selected);
-      const label = document.getElementById('fileLabel');
-      if (files.length > 0) {
-        label.innerText = `${files.length} 枚の写真を選択中`;
-      } else {
-        label.innerText = 'シリアル用紙の写真を選択';
-      }
-    }
+    const fileInput = document.getElementById('fileInput');
+    const fileLabel = document.getElementById('fileLabel');
 
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
+    fileInput.addEventListener('change', (e) => {
+      files = Array.from(e.target.files || []);
+      fileLabel.innerText = files.length > 0 ? `${files.length} 枚の写真を選択中` : 'シリアル用紙の写真を選択';
+    });
+
+    // 端末側で高速軽量化（800px・70%品質：文字認識に十分かつデータ量を1/50に圧縮）
+    async function compressImage(file) {
+      return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          const str = reader.result;
-          const commaIdx = str.indexOf(',');
-          resolve(commaIdx !== -1 ? str.substring(commaIdx + 1) : str);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxDim = 800;
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl.split(',')[1]);
+          };
+          img.src = e.target.result;
         };
-        reader.onerror = () => reject(new Error('ファイル読込失敗'));
         reader.readAsDataURL(file);
       });
     }
 
-    async function extractSingle(file) {
-      const base64 = await fileToBase64(file);
+    // レートリミット回避用ウェイト
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    async function extractSingle(file, retryCount = 0) {
+      const base64 = await compressImage(file);
       const res = await fetch('/api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mimeType: file.type || 'image/jpeg'
-        })
+        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' })
       });
+
       const data = await res.json();
+
+      // レート制限（exceeded / 429）に当たった場合は1秒待って再試行
+      if (data.error && data.error.includes('exceeded') && retryCount < 2) {
+        await sleep(1200);
+        return await extractSingle(file, retryCount + 1);
+      }
+
       if (data.error) throw new Error(data.error);
       return data.code || '読取失敗';
     }
@@ -253,64 +232,63 @@
       const btn = document.getElementById('runBtn');
       const status = document.getElementById('status');
       const resultSection = document.getElementById('resultSection');
-      const codeList = document.getElementById('codeList');
       const resultCount = document.getElementById('resultCount');
 
       btn.disabled = true;
-      extractedCodes = [];
-      codeList.innerHTML = '';
+      extractedCodes = new Array(files.length).fill('');
+      renderList(extractedCodes);
       resultSection.style.display = 'block';
 
       let completed = 0;
       status.innerText = `解析中... (0 / ${files.length})`;
 
-      // 同時実行数 (3並列で高速処理)
-      const CONCURRENCY_LIMIT = 3;
+      // レート制限に引っかからない安全な同時実行数（2並列）
+      const CONCURRENCY = 2;
       const queue = [...files.entries()];
-      const results = new Array(files.length);
 
       async function worker() {
         while (queue.length > 0) {
           const [index, file] = queue.shift();
           try {
             const code = await extractSingle(file);
-            results[index] = code;
+            extractedCodes[index] = code;
           } catch (e) {
-            results[index] = `エラー (${e.message})`;
+            extractedCodes[index] = `読取エラー`;
           }
           completed++;
           status.innerText = `解析中... (${completed} / ${files.length})`;
-          renderList(results);
+          renderList(extractedCodes);
+          // API負荷軽減のためわずかに待機
+          await sleep(250);
         }
       }
 
-      const workers = Array.from({ length: Math.min(CONCURRENCY_LIMIT, files.length) }, () => worker());
+      const workers = Array.from({ length: Math.min(CONCURRENCY, files.length) }, () => worker());
       await Promise.all(workers);
 
       status.innerText = '✨ すべての読み取りが完了しました！';
       btn.disabled = false;
-      extractedCodes = results;
-      resultCount.innerText = results.length;
+      resultCount.innerText = extractedCodes.filter(c => c && !c.includes('エラー')).length;
     }
 
-    function renderList(results) {
+    function renderList(codes) {
       const codeList = document.getElementById('codeList');
       codeList.innerHTML = '';
-      results.forEach((code, i) => {
+      codes.forEach((code, i) => {
         if (!code) return;
+        const isErr = code.includes('エラー') || code === '読取失敗';
         const item = document.createElement('div');
         item.className = 'code-item';
         item.id = `item-${i}`;
         item.innerHTML = `
           <div class="code-left">
             <span class="code-num">#${i + 1}</span>
-            <span class="code-text">${code}</span>
+            <span class="code-text ${isErr ? 'code-error' : ''}">${code}</span>
           </div>
-          <button class="btn-copy-one" id="btn-${i}" onclick="copyOne(${i}, '${code}')">コピー</button>
+          ${!isErr ? `<button class="btn-copy-one" id="btn-${i}" onclick="copyOne(${i}, '${code}')">コピー</button>` : ''}
         `;
         codeList.appendChild(item);
       });
-      document.getElementById('resultCount').innerText = results.filter(Boolean).length;
     }
 
     function copyOne(index, text) {
@@ -324,7 +302,7 @@
     }
 
     function copyAll() {
-      const validCodes = extractedCodes.filter(c => c && !c.startsWith('エラー'));
+      const validCodes = extractedCodes.filter(c => c && !c.includes('エラー') && c !== '読取失敗');
       if (!validCodes.length) return alert('コピーできるコードがありません');
       navigator.clipboard.writeText(validCodes.join('\n')).then(() => {
         alert(`${validCodes.length}件のコードをコピーしました！`);
