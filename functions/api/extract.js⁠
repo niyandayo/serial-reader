@@ -1,25 +1,33 @@
-export async function onRequestPost(context) {
+export async function onRequest(context) {
+  // POST以外のアクセスを弾く
+  if (context.request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
   try {
     const { request, env } = context;
     const { imageBase64, mimeType } = await request.json();
     const apiKey = env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'API key is not configured' }), {
+      return new Response(JSON.stringify({ error: "APIキーが設定されていません (GEMINI_API_KEY)" }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
     }
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{
           parts: [
-            { text: "画像内に記載されている「シリアルナンバー」や「シリアルコード」に該当する英数字文字列のみを抽出してください。余計な説明や前置きは一切省き、コード文字列のみを1行で出力してください。" },
+            { text: "画像内に記載されている「シリアルナンバー」「シリアルコード」に該当する英数字文字列のみを抽出してください。前置きや解説は一切省き、コード文字列のみを1行で出力してください。" },
             { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } }
           ]
         }]
@@ -29,15 +37,15 @@ export async function onRequestPost(context) {
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
 
-    const code = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '認識できませんでした';
+    const code = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "認識できませんでした";
     return new Response(JSON.stringify({ code }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" }
     });
   }
 }
