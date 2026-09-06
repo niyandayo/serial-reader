@@ -53,7 +53,7 @@
 </head>
 <body>
 
-  <h1>🎫 シリアル一括読取ツール v3</h1>
+  <h1>🎫 シリアル一括読取ツール v4</h1>
 
   <div class="upload-box" onclick="document.getElementById('fileInput').click()">
     <div id="fileLabel">📷 写真を選択（複数枚まとめてOK）</div>
@@ -81,11 +81,7 @@
         reader.onload = () => {
           const str = reader.result;
           const commaIdx = str.indexOf(',');
-          if (commaIdx !== -1) {
-            resolve(str.substring(commaIdx + 1));
-          } else {
-            resolve(str);
-          }
+          resolve(commaIdx !== -1 ? str.substring(commaIdx + 1) : str);
         };
         reader.onerror = () => reject(new Error('ファイル読み込み失敗'));
         reader.readAsDataURL(file);
@@ -110,8 +106,7 @@
           const file = files[i];
           const base64 = await fileToBase64(file);
 
-          const targetUrl = window.location.origin + '/api/extract';
-          const res = await fetch(targetUrl, {
+          const res = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -125,7 +120,7 @@
           try {
             data = JSON.parse(text);
           } catch (jsonErr) {
-            throw new Error(`APIがHTMLを返しました (Status: ${res.status})`);
+            throw new Error(`API応答エラー (Status: ${res.status})`);
           }
 
           if (data.error) {
