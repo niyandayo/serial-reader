@@ -37,7 +37,6 @@
     }
     .header p { font-size: 0.75rem; color: var(--muted); margin: 0; }
 
-    /* iPhoneで確実に動作するネイティブボタンUI */
     .upload-card {
       background: var(--card);
       border: 2px dashed #c4b5fd;
@@ -185,14 +184,38 @@
       }
     });
 
-    // iPhoneの写真（数MB）を長辺800px・70%品質の超軽量JPEGへ瞬時に圧縮
-    function compressImageSafely(file) {
+    // iOSクラッシュ対策：原画をフル展開せず、読み込みと同時に長辺1000pxへ安全にリサイズ
+    async function compressImageSafely(file) {
+      // 1. createImageBitmap が使える場合はリサイズ指定で安全に縮小デコード
+      if ('createImageBitmap' in window) {
+        try {
+          const bitmap = await createImageBitmap(file, {
+            resizeWidth: 1000,
+            resizeQuality: 'medium'
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(bitmap, 0, 0);
+          bitmap.close(); // メモリを即時解放
+
+          const base64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+          canvas.width = 0;
+          canvas.height = 0;
+          return base64;
+        } catch (err) {
+          // フォールバックへ流す
+        }
+      }
+
+      // 2. フォールバック（通常読み込み）
       return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
         img.onload = () => {
           URL.revokeObjectURL(url);
-          const maxDim = 800;
+          const maxDim = 1000;
           let { width, height } = img;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -209,7 +232,7 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
           canvas.width = 0;
           canvas.height = 0;
           resolve(dataUrl.split(',')[1]);
@@ -234,7 +257,6 @@
 
       const data = await res.json();
 
-      // レート制限エラー時は1.5秒待機して自動リトライ
       if (data.error && data.error.includes('exceeded') && retryCount < 2) {
         await sleep(1500);
         return await extractSingle(file, retryCount + 1);
@@ -260,28 +282,19 @@
       let completed = 0;
       status.innerText = `解析中... (0 / ${rawFiles.length})`;
 
-      // 安定かつ高速な2並列処理
-      const CONCURRENCY = 2;
-      const queue = [...rawFiles.entries()];
-
-      async function worker() {
-        while (queue.length > 0) {
-          const [index, file] = queue.shift();
-          try {
-            const code = await extractSingle(file);
-            extractedCodes[index] = code;
-          } catch (e) {
-            extractedCodes[index] = `読取エラー`;
-          }
-          completed++;
-          status.innerText = `解析中... (${completed} / ${rawFiles.length})`;
-          renderList(extractedCodes);
-          await sleep(200);
+      for (let i = 0; i < rawFiles.length; i++) {
+        const file = rawFiles[i];
+        try {
+          const code = await extractSingle(file);
+          extractedCodes[i] = code;
+        } catch (e) {
+          extractedCodes[i] = `読取エラー`;
         }
+        completed++;
+        status.innerText = `解析中... (${completed} / ${rawFiles.length})`;
+        renderList(extractedCodes);
+        await sleep(250);
       }
-
-      const workers = Array.from({ length: Math.min(CONCURRENCY, rawFiles.length) }, () => worker());
-      await Promise.all(workers);
 
       status.innerText = '✨ すべての読み取りが完了しました！';
       btn.disabled = false;
