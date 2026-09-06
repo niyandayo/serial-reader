@@ -159,13 +159,13 @@
     <div id="fileCountDisplay"></div>
   </div>
 
-  <button class="btn-main" id="runBtn" onclick="processImages()">読み取り開始</button>
+  <button class="btn-main" id="runBtn">読み取り開始</button>
   <div id="status"></div>
 
   <div class="result-section" id="resultSection">
     <div class="result-header">
       <span class="result-title">読取結果 (<span id="resultCount">0</span>件)</span>
-      <button class="btn-all-copy" onclick="copyAll()">📋 全件まとめてコピー</button>
+      <button class="btn-all-copy" id="copyAllBtn">📋 全件まとめてコピー</button>
     </div>
     <div class="code-list" id="codeList"></div>
   </div>
@@ -176,11 +176,13 @@
 
     const fileInput = document.getElementById('fileInput');
     const fileCountDisplay = document.getElementById('fileCountDisplay');
+    const runBtn = document.getElementById('runBtn');
+    const copyAllBtn = document.getElementById('copyAllBtn');
 
     fileInput.addEventListener('change', function(e) {
       if (this.files && this.files.length > 0) {
         rawFiles = Array.from(this.files);
-        fileCountDisplay.innerText = `✨ ${rawFiles.length} 枚の写真を選択しました`;
+        fileCountDisplay.textContent = `✨ ${rawFiles.length} 枚の写真を選択しました`;
       }
     });
 
@@ -257,7 +259,8 @@
 
       const data = await res.json();
 
-      if (data.error && data.error.includes('exceeded') && retryCount < 2) {
+      const retryableStatus = res.status === 429 || (res.status >= 500 && res.status <= 599);
+      if (data.retryable === true && retryableStatus && retryCount < 2) {
         await sleep(1500);
         return await extractSingle(file, retryCount + 1);
       }
@@ -269,7 +272,7 @@
     async function processImages() {
       if (!rawFiles.length) return alert('「ファイルを選択」から写真を1枚以上選んでください');
 
-      const btn = document.getElementById('runBtn');
+      const btn = runBtn;
       const status = document.getElementById('status');
       const resultSection = document.getElementById('resultSection');
       const resultCount = document.getElementById('resultCount');
@@ -280,7 +283,7 @@
       resultSection.style.display = 'block';
 
       let completed = 0;
-      status.innerText = `解析中... (0 / ${rawFiles.length})`;
+      status.textContent = `解析中... (0 / ${rawFiles.length})`;
 
       for (let i = 0; i < rawFiles.length; i++) {
         const file = rawFiles[i];
@@ -291,32 +294,49 @@
           extractedCodes[i] = `読取エラー`;
         }
         completed++;
-        status.innerText = `解析中... (${completed} / ${rawFiles.length})`;
+        status.textContent = `解析中... (${completed} / ${rawFiles.length})`;
         renderList(extractedCodes);
         await sleep(250);
       }
 
-      status.innerText = '✨ すべての読み取りが完了しました！';
+      status.textContent = '✨ すべての読み取りが完了しました！';
       btn.disabled = false;
-      resultCount.innerText = extractedCodes.filter(c => c && !c.includes('エラー')).length;
+      resultCount.textContent = extractedCodes.filter(c => c && !c.includes('エラー')).length;
     }
 
     function renderList(codes) {
       const codeList = document.getElementById('codeList');
-      codeList.innerHTML = '';
+      codeList.replaceChildren();
       codes.forEach((code, i) => {
         if (!code) return;
         const isErr = code.includes('エラー') || code === '読取失敗';
         const item = document.createElement('div');
         item.className = 'code-item';
         item.id = `item-${i}`;
-        item.innerHTML = `
-          <div class="code-left">
-            <span class="code-num">#${i + 1}</span>
-            <span class="code-text ${isErr ? 'code-error' : ''}">${code}</span>
-          </div>
-          ${!isErr ? `<button class="btn-copy-one" id="btn-${i}" onclick="copyOne(${i}, '${code}')">コピー</button>` : ''}
-        `;
+
+        const left = document.createElement('div');
+        left.className = 'code-left';
+
+        const number = document.createElement('span');
+        number.className = 'code-num';
+        number.textContent = `#${i + 1}`;
+
+        const codeText = document.createElement('span');
+        codeText.className = isErr ? 'code-text code-error' : 'code-text';
+        codeText.textContent = code;
+
+        left.append(number, codeText);
+        item.appendChild(left);
+
+        if (!isErr) {
+          const copyButton = document.createElement('button');
+          copyButton.className = 'btn-copy-one';
+          copyButton.id = `btn-${i}`;
+          copyButton.type = 'button';
+          copyButton.textContent = 'コピー';
+          copyButton.addEventListener('click', () => copyOne(i, code));
+          item.appendChild(copyButton);
+        }
         codeList.appendChild(item);
       });
     }
@@ -327,7 +347,7 @@
         const btn = document.getElementById(`btn-${index}`);
         item.classList.add('copied');
         btn.classList.add('copied-btn');
-        btn.innerText = '済';
+        btn.textContent = '済';
       });
     }
 
@@ -338,6 +358,9 @@
         alert(`${validCodes.length}件のコードをコピーしました！`);
       });
     }
+
+    runBtn.addEventListener('click', processImages);
+    copyAllBtn.addEventListener('click', copyAll);
   </script>
 </body>
 </html>
