@@ -79,42 +79,42 @@
       document.getElementById('fileLabel').innerText = `${files.length} 枚選択中`;
     }
 
-    // 画像を最大1200pxに縮小してJPEGのBase64にする関数（通信エラー・容量オーバー防止）
-    function resizeAndCompress(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
+    // iPhoneの写真(HEIC/高画質)を安全に縮小する処理
+    async function resizeAndCompress(file) {
+      let imgSource;
+      try {
+        imgSource = await createImageBitmap(file);
+      } catch (err) {
+        imgSource = await new Promise((resolve, reject) => {
           const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const maxDim = 1200;
-
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            resolve(dataUrl.split(',')[1]);
-          };
+          img.onload = () => resolve(img);
           img.onerror = reject;
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+          img.src = URL.createObjectURL(file);
+        });
+      }
+
+      const maxDim = 1200;
+      let width = imgSource.width;
+      let height = imgSource.height;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgSource, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      return dataUrl.split(',')[1];
     }
 
     async function processImages() {
