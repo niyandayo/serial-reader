@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -16,7 +16,7 @@
       --muted: #6b7280;
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       max-width: 480px;
@@ -26,10 +26,10 @@
       color: var(--text);
     }
 
-    .header { text-align: center; margin-bottom: 16px; }
+    .header { text-align: center; margin-bottom: 20px; }
     .header h1 {
-      font-size: 1.3rem;
-      margin: 0 0 4px;
+      font-size: 1.35rem;
+      margin: 0 0 6px;
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary-dark), var(--accent));
       -webkit-background-clip: text;
@@ -37,31 +37,32 @@
     }
     .header p { font-size: 0.75rem; color: var(--muted); margin: 0; }
 
-    /* iOSで確実にイベントを拾うための透明オーバーレイ構造 */
+    /* iPhoneで確実に動作するネイティブボタンUI */
     .upload-card {
-      position: relative;
-      border: 2px dashed #c4b5fd;
-      border-radius: 14px;
-      padding: 22px 14px;
-      text-align: center;
       background: var(--card);
+      border: 2px dashed #c4b5fd;
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
       box-shadow: 0 4px 12px rgba(139, 92, 246, 0.05);
-      overflow: hidden;
     }
-    .upload-icon { font-size: 1.8rem; margin-bottom: 4px; }
-    .upload-label { font-weight: 700; font-size: 0.95rem; color: var(--primary-dark); }
-    .upload-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-    /* inputタグをカード全体に透明で被せる */
-    .file-input-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    
+    input[type="file"] {
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      font-weight: 600;
       width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 10;
+      max-width: 280px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    #fileCountDisplay {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary-dark);
     }
 
     .btn-main {
@@ -69,22 +70,22 @@
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
       border: none;
-      padding: 13px;
+      padding: 14px;
       border-radius: 12px;
       font-weight: 700;
       font-size: 1rem;
       cursor: pointer;
-      margin-top: 12px;
+      margin-top: 14px;
       box-shadow: 0 4px 14px rgba(236, 72, 153, 0.25);
     }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
     #status {
-      margin: 14px 0 8px;
+      margin: 16px 0 10px;
       font-size: 0.85rem;
       color: var(--primary-dark);
       text-align: center;
-      font-weight: 600;
+      font-weight: 700;
       min-height: 20px;
     }
 
@@ -154,10 +155,9 @@
   </div>
 
   <div class="upload-card">
-    <input type="file" id="fileInput" class="file-input-overlay" accept="image/*" multiple>
     <div class="upload-icon">📸</div>
-    <div class="upload-label" id="fileLabel">シリアル用紙の写真を選択</div>
-    <div class="upload-sub">複数枚まとめて選択OK</div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div id="fileCountDisplay"></div>
   </div>
 
   <button class="btn-main" id="runBtn" onclick="processImages()">読み取り開始</button>
@@ -172,55 +172,60 @@
   </div>
 
   <script>
-    let selectedFiles = [];
+    let rawFiles = [];
     let extractedCodes = [];
 
     const fileInput = document.getElementById('fileInput');
-    const fileLabel = document.getElementById('fileLabel');
+    const fileCountDisplay = document.getElementById('fileCountDisplay');
 
-    fileInput.addEventListener('change', function() {
+    fileInput.addEventListener('change', function(e) {
       if (this.files && this.files.length > 0) {
-        selectedFiles = Array.from(this.files);
-        fileLabel.innerText = `✨ ${selectedFiles.length} 枚の写真を選択中`;
+        rawFiles = Array.from(this.files);
+        fileCountDisplay.innerText = `✨ ${rawFiles.length} 枚の写真を選択しました`;
       }
     });
 
-    // 端末側で高速軽量化（800px・70%品質）
-    async function compressImage(file) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const maxDim = 800;
-            let { width, height } = img;
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
+    // iPhoneの写真（数MB）を長辺800px・70%品質の超軽量JPEGへ瞬時に圧縮
+    function compressImageSafely(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const maxDim = 800;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
             }
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            resolve(dataUrl.split(',')[1]);
-          };
-          img.src = e.target.result;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          canvas.width = 0;
+          canvas.height = 0;
+          resolve(dataUrl.split(',')[1]);
         };
-        reader.readAsDataURL(file);
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('読込失敗'));
+        };
+        img.src = url;
       });
     }
 
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     async function extractSingle(file, retryCount = 0) {
-      const base64 = await compressImage(file);
+      const base64 = await compressImageSafely(file);
       const res = await fetch('/api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -229,9 +234,9 @@
 
       const data = await res.json();
 
-      // レート制限エラー時は1.2秒待って再試行
+      // レート制限エラー時は1.5秒待機して自動リトライ
       if (data.error && data.error.includes('exceeded') && retryCount < 2) {
-        await sleep(1200);
+        await sleep(1500);
         return await extractSingle(file, retryCount + 1);
       }
 
@@ -240,7 +245,7 @@
     }
 
     async function processImages() {
-      if (!selectedFiles.length) return alert('写真を1枚以上選んでください');
+      if (!rawFiles.length) return alert('「ファイルを選択」から写真を1枚以上選んでください');
 
       const btn = document.getElementById('runBtn');
       const status = document.getElementById('status');
@@ -248,15 +253,16 @@
       const resultCount = document.getElementById('resultCount');
 
       btn.disabled = true;
-      extractedCodes = new Array(selectedFiles.length).fill('');
+      extractedCodes = new Array(rawFiles.length).fill('');
       renderList(extractedCodes);
       resultSection.style.display = 'block';
 
       let completed = 0;
-      status.innerText = `解析中... (0 / ${selectedFiles.length})`;
+      status.innerText = `解析中... (0 / ${rawFiles.length})`;
 
+      // 安定かつ高速な2並列処理
       const CONCURRENCY = 2;
-      const queue = [...selectedFiles.entries()];
+      const queue = [...rawFiles.entries()];
 
       async function worker() {
         while (queue.length > 0) {
@@ -268,13 +274,13 @@
             extractedCodes[index] = `読取エラー`;
           }
           completed++;
-          status.innerText = `解析中... (${completed} / ${selectedFiles.length})`;
+          status.innerText = `解析中... (${completed} / ${rawFiles.length})`;
           renderList(extractedCodes);
-          await sleep(250);
+          await sleep(200);
         }
       }
 
-      const workers = Array.from({ length: Math.min(CONCURRENCY, selectedFiles.length) }, () => worker());
+      const workers = Array.from({ length: Math.min(CONCURRENCY, rawFiles.length) }, () => worker());
       await Promise.all(workers);
 
       status.innerText = '✨ すべての読み取りが完了しました！';
@@ -322,4 +328,3 @@
   </script>
 </body>
 </html>
- 
