@@ -415,7 +415,8 @@
   <script>
     const MAX_CONCURRENT_REQUESTS = 3;
     const MAX_RETRIES = 2;
-    const RETRY_DELAY_MS = 1500;
+    const RETRY_BASE_DELAY_MS = 1000;
+    const RETRY_JITTER_MS = 500;
 
     let imageItems = [];
     let batchRunning = false;
@@ -448,6 +449,7 @@
         thumbnail: '',
         code: '',
         status: 'queued',
+        errorCode: '',
         duplicate: false,
         copied: false
       }));
@@ -553,6 +555,60 @@
 
     const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
+    function getRetryDelayMs(retryCount) {
+      const exponentialDelay = RETRY_BASE_DELAY_MS * (2 ** retryCount);
+      const jitter = Math.floor(Math.random() * RETRY_JITTER_MS);
+      return exponentialDelay + jitter;
+    }
+
+    function createExtractionError(errorCode) {
+      const error = new Error('読み取りに失敗しました');
+      error.errorCode = errorCode;
+      return error;
+    }
+
+    function getSafeErrorCode(data, response) {
+      if (typeof data?.errorCode === 'string' && /^[a-z0-9_]{1,40}$/.test(data.errorCode)) {
+        return data.errorCode;
+      }
+      if (response.status === 429) return 'gemini_429';
+      if (response.status >= 500 && response.status <= 599) return 'gemini_5xx';
+      if (response.status === 422) return 'invalid_output';
+      if (response.status === 413) return 'payload_too_large';
+      if (response.status === 400) return 'invalid_input';
+      return 'unknown_error';
+    }
+
+    function logClientResult({ event, imageIndex, attempt, errorCode, statusCode, durationMs, retryInMs, requestId }) {
+      const entry = {
+        event,
+        imageIndex: imageIndex + 1,
+        attempt,
+        errorCode,
+        statusCode,
+        durationMs
+      };
+
+      if (Number.isInteger(retryInMs)) entry.retryInMs = retryInMs;
+      if (typeof requestId === 'string' && /^[A-Za-z0-9-]{1,80}$/.test(requestId)) {
+        entry.requestId = requestId;
+      }
+      console.warn(JSON.stringify(entry));
+    }
+
+    function getFailureMessage(errorCode) {
+      return {
+        gemini_429: 'アクセスが混み合っています。時間をおいて再読み取りしてください。',
+        gemini_5xx: 'AIサービスで一時的なエラーが発生しました。再読み取りできます。',
+        network_error: '一時的な通信エラーが発生しました。通信環境を確認して再読み取りしてください。',
+        invalid_upstream_response: 'AIサービスから一時的に正しい応答を受信できませんでした。再読み取りできます。',
+        invalid_output: 'コードとして認識できませんでした。画像を確認して再読み取りしてください。',
+        payload_too_large: '画像データが大きすぎます。別の画像を選択してください。',
+        invalid_input: '画像データを確認できませんでした。別の画像を選択してください。',
+        image_processing_error: '画像を処理できませんでした。別の画像を選択してください。'
+      }[errorCode] || '読み取れませんでした。画像を確認して再読み取りできます。';
+    }
+
     async function acquireRequestSlot() {
       if (activeRequestCount < MAX_CONCURRENT_REQUESTS) {
         activeRequestCount += 1;
@@ -579,27 +635,97 @@
       }
     }
 
-    async function requestExtraction(base64, retryCount = 0) {
-      const response = await withRequestSlot(() => fetch('/api', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' })
-      }));
+    async function requestExtraction(base64, imageIndex, retryCount = 0) {
+      const attempt = retryCount + 1;
+      const startedAt = Date.now();
+      let response;
+
+      try {
+        response = await withRequestSlot(() => fetch('/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' })
+        }));
+      } catch {
+        const errorCode = 'network_error';
+        const canRetry = retryCount < MAX_RETRIES;
+        const retryInMs = canRetry ? getRetryDelayMs(retryCount) : undefined;
+        logClientResult({
+          event: canRetry ? 'image_extract_retry' : 'image_extract_failed',
+          imageIndex,
+          attempt,
+          errorCode,
+          statusCode: 0,
+          durationMs: Date.now() - startedAt,
+          retryInMs
+        });
+        if (canRetry) {
+          await sleep(retryInMs);
+          return requestExtraction(base64, imageIndex, retryCount + 1);
+        }
+        throw createExtractionError(errorCode);
+      }
 
       let data;
       try {
         data = await response.json();
       } catch {
-        throw new Error('読み取りに失敗しました');
+        const errorCode = 'network_error';
+        const temporaryStatus = response.ok
+          || response.status === 408
+          || response.status === 429
+          || (response.status >= 500 && response.status <= 599);
+        const canRetry = temporaryStatus && retryCount < MAX_RETRIES;
+        const retryInMs = canRetry ? getRetryDelayMs(retryCount) : undefined;
+        logClientResult({
+          event: canRetry ? 'image_extract_retry' : 'image_extract_failed',
+          imageIndex,
+          attempt,
+          errorCode,
+          statusCode: response.status,
+          durationMs: Date.now() - startedAt,
+          retryInMs
+        });
+        if (canRetry) {
+          await sleep(retryInMs);
+          return requestExtraction(base64, imageIndex, retryCount + 1);
+        }
+        throw createExtractionError(errorCode);
       }
 
-      const retryableStatus = response.status === 429 || (response.status >= 500 && response.status <= 599);
-      if (data.retryable === true && retryableStatus && retryCount < MAX_RETRIES) {
-        await sleep(RETRY_DELAY_MS);
-        return requestExtraction(base64, retryCount + 1);
+      const retryableStatus = response.status === 408
+        || response.status === 429
+        || (response.status >= 500 && response.status <= 599);
+      const errorCode = getSafeErrorCode(data, response);
+      if (data?.retryable === true && retryableStatus && retryCount < MAX_RETRIES) {
+        const retryInMs = getRetryDelayMs(retryCount);
+        logClientResult({
+          event: 'image_extract_retry',
+          imageIndex,
+          attempt,
+          errorCode,
+          statusCode: response.status,
+          durationMs: Date.now() - startedAt,
+          retryInMs,
+          requestId: data?.requestId
+        });
+        await sleep(retryInMs);
+        return requestExtraction(base64, imageIndex, retryCount + 1);
       }
 
-      if (data.error || !response.ok || !data.code) throw new Error('読み取りに失敗しました');
+      if (data?.error || !response.ok || !data?.code) {
+        const finalErrorCode = response.ok ? 'invalid_output' : errorCode;
+        logClientResult({
+          event: 'image_extract_failed',
+          imageIndex,
+          attempt,
+          errorCode: finalErrorCode,
+          statusCode: response.status,
+          durationMs: Date.now() - startedAt,
+          requestId: data?.requestId
+        });
+        throw createExtractionError(finalErrorCode);
+      }
       return data.code;
     }
 
@@ -769,7 +895,7 @@
           const message = document.createElement('p');
           message.className = 'item-message';
           if (item.status === 'error') {
-            message.textContent = '読み取れませんでした。画像を確認して再読み取りできます。';
+            message.textContent = getFailureMessage(item.errorCode);
           } else if (item.status === 'processing') {
             message.textContent = '画像をAIへ送信して読み取っています。';
           } else if (item.status === 'preparing') {
@@ -800,22 +926,29 @@
     async function processItem(index) {
       const item = imageItems[index];
       item.status = item.base64 ? 'processing' : 'preparing';
+      item.errorCode = '';
       item.copied = false;
       renderList();
       updateProgress();
 
       try {
         if (!item.base64) {
-          const compressed = await compressImageSafely(item.file);
+          let compressed;
+          try {
+            compressed = await compressImageSafely(item.file);
+          } catch {
+            throw createExtractionError('image_processing_error');
+          }
           item.base64 = compressed.base64;
           item.thumbnail = compressed.thumbnail;
         }
         item.status = 'processing';
         renderList();
-        item.code = await requestExtraction(item.base64);
+        item.code = await requestExtraction(item.base64, index);
         item.status = 'success';
-      } catch {
+      } catch (error) {
         item.code = '';
+        item.errorCode = typeof error?.errorCode === 'string' ? error.errorCode : 'unknown_error';
         item.status = 'error';
       }
 
@@ -831,6 +964,7 @@
       imageItems.forEach(item => {
         item.code = '';
         item.status = 'queued';
+        item.errorCode = '';
         item.duplicate = false;
         item.copied = false;
       });
