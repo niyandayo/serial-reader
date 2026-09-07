@@ -9,26 +9,26 @@
   <title>画像からシリアル番号を読み取り・コピー｜無料シリアルコード読取ツール</title>
   <style>
     :root {
-      --accent: #ad6f96;
-      --accent-strong: #83536f;
-      --accent-soft: #fbf0f7;
-      --lavender: #80709d;
-      --lavender-soft: #f3eff8;
-      --bg: #fcf9f7;
+      --accent: #b76891;
+      --accent-strong: #7f4d69;
+      --accent-soft: #fff0f7;
+      --lavender: #8773a2;
+      --lavender-soft: #f5f0fa;
+      --bg: #fff9f7;
       --surface: #ffffff;
-      --surface-subtle: #f8f4f6;
-      --text: #30282e;
-      --muted: #746a71;
-      --muted-light: #968b92;
-      --line: #ebe2e6;
-      --line-strong: #dfd3d9;
+      --surface-subtle: #fbf5f8;
+      --text: #382a33;
+      --muted: #776871;
+      --muted-light: #9b8c95;
+      --line: #f0e2e8;
+      --line-strong: #e5d1db;
       --success: #587a68;
       --success-soft: #eff6f1;
       --danger: #ad555e;
       --danger-soft: #fcf0f1;
       --warning: #92713b;
       --warning-soft: #fbf4e7;
-      --shadow: 0 14px 38px rgba(91, 66, 82, 0.075);
+      --shadow: 0 12px 34px rgba(117, 77, 99, 0.07);
       --radius-large: 20px;
       --radius-medium: 13px;
       --radius-small: 9px;
@@ -42,7 +42,7 @@
       min-height: 100vh;
       margin: 0;
       overflow-x: hidden;
-      background: linear-gradient(180deg, #fffafd 0, var(--bg) 340px, #faf8f6 100%);
+      background: linear-gradient(180deg, #fff7fb 0, var(--bg) 330px, #fdfaf8 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -68,7 +68,8 @@
     .skip-link:focus { transform: translateY(0); }
 
     .site-header {
-      background: transparent;
+      border-bottom: 1px solid rgba(229, 209, 220, 0.55);
+      background: rgba(255, 250, 252, 0.72);
     }
     .site-header-inner {
       display: flex;
@@ -85,11 +86,22 @@
       align-items: center;
       color: var(--text);
       font-size: 0.96rem;
-      font-weight: 700;
+      gap: 9px;
+      font-weight: 720;
       letter-spacing: -0.025em;
       text-decoration: none;
     }
-    .site-brand-accent { color: var(--accent-strong); }
+    .site-brand-mark {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border: 1px solid #efd8e3;
+      border-radius: 9px;
+      background: #fff0f6;
+      color: var(--accent);
+    }
+    .site-brand-mark svg { width: 14px; height: 14px; }
     .site-nav { display: flex; align-items: center; gap: 22px; }
     .site-nav a {
       color: var(--muted);
@@ -108,32 +120,31 @@
       max-width: 900px;
       margin-bottom: 25px;
     }
-    .hero-kicker {
-      display: inline-flex;
-      min-height: 28px;
-      margin-bottom: 13px;
-      padding: 0 11px;
+    .hero-context {
+      display: flex;
+      margin: 0 0 12px;
       align-items: center;
-      border: 1px solid rgba(173, 111, 150, 0.11);
-      border-radius: 999px;
-      background: rgba(251, 240, 247, 0.78);
+      gap: 8px;
       color: var(--accent-strong);
-      font-size: 0.72rem;
-      font-weight: 650;
-      letter-spacing: 0.035em;
+      font-size: 0.74rem;
+      font-weight: 620;
+      letter-spacing: 0.025em;
+    }
+    .hero-context::before {
+      width: 18px;
+      height: 1px;
+      background: var(--accent);
+      content: "";
     }
     .hero h1 {
       margin: 0;
-      max-width: 840px;
-      font-size: clamp(1.85rem, 4vw, 2.95rem);
-      font-weight: 700;
-      letter-spacing: -0.045em;
-      line-height: 1.2;
+      max-width: 850px;
+      font-size: clamp(1.88rem, 4vw, 2.9rem);
+      font-weight: 720;
+      letter-spacing: -0.04em;
+      line-height: 1.22;
     }
-    .hero h1 span {
-      display: inline-block;
-      color: var(--accent-strong);
-    }
+    .hero-title-line { display: inline; }
     .hero p {
       max-width: 760px;
       margin: 15px 0 0;
@@ -143,7 +154,7 @@
     }
     .tool-panel {
       overflow: hidden;
-      border: 1px solid rgba(229, 215, 222, 0.82);
+      border: 1px solid rgba(235, 215, 225, 0.88);
       border-radius: 22px;
       background: var(--surface);
       box-shadow: var(--shadow);
@@ -168,14 +179,14 @@
       margin: 14px 20px 0;
       padding: 20px;
       align-items: center;
-      border: 1px solid #eee0e8;
-      border-radius: 17px;
-      background: linear-gradient(135deg, #fff9fc 0%, #faf8ff 100%);
+      border: 1px dashed #dfbfd0;
+      border-radius: 18px;
+      background: #fff6fa;
       transition: border-color 160ms ease, background 160ms ease;
     }
     .upload-card:focus-within {
       border-color: var(--accent);
-      background: #fffbfd;
+      background: #fffafd;
     }
     .upload-intro {
       display: flex;
@@ -190,18 +201,10 @@
       height: 44px;
       flex: 0 0 44px;
       place-items: center;
-      border-radius: 50%;
-      border: 1px solid rgba(173, 111, 150, 0.12);
-      background: rgba(255, 255, 255, 0.82);
+      border-radius: 14px;
+      border: 1px solid #ead1de;
+      background: #fff;
       color: var(--accent);
-    }
-    .upload-icon::after {
-      position: absolute;
-      top: -4px;
-      right: -3px;
-      color: var(--lavender);
-      content: "✦";
-      font-size: 0.58rem;
     }
     .upload-icon svg { width: 21px; height: 21px; }
     .upload-lead {
@@ -233,6 +236,7 @@
       cursor: pointer;
       font-size: 0.84rem;
       font-weight: 680;
+      box-shadow: 0 5px 14px rgba(142, 81, 112, 0.12);
       transition: background 150ms ease, transform 150ms ease;
     }
     .upload-trigger:hover { background: var(--accent-strong); }
@@ -305,7 +309,7 @@
     .progress-panel {
       margin-top: 2px;
       padding: 18px 22px 20px;
-      background: linear-gradient(90deg, var(--accent-soft), var(--lavender-soft));
+      background: #fff2f8;
     }
     .progress-copy {
       display: flex;
@@ -393,7 +397,7 @@
 
     .code-list {
       overflow: hidden;
-      border: 1px solid rgba(226, 213, 220, 0.78);
+      border: 1px solid rgba(232, 211, 222, 0.85);
       border-radius: 16px;
       background: var(--surface);
       box-shadow: 0 6px 20px rgba(91, 66, 82, 0.045);
@@ -410,9 +414,9 @@
       transition: background 160ms ease;
     }
     .code-item:last-child { border-bottom: 0; }
-    .code-item.is-error { background: #fdf9f9; }
-    .code-item.is-duplicate { background: #fdfbf7; }
-    .code-item.copied { background: #f3f7f5; }
+    .code-item.is-error { background: #fffafa; }
+    .code-item.is-duplicate { background: #fffdf8; }
+    .code-item.copied { background: #f8fbf9; }
     .thumbnail {
       display: grid;
       grid-column: 4;
@@ -479,7 +483,7 @@
       padding: 8px 11px;
       border: 1px solid transparent;
       border-radius: var(--radius-small);
-      background: #f8f5f7;
+      background: #fcf5f8;
       color: var(--text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.94rem;
@@ -629,8 +633,9 @@
       .site-header-inner { min-height: 54px; padding-right: 14px; padding-left: 14px; }
       .site-brand { font-size: 0.9rem; }
       .app-shell { padding: 17px 14px 48px; }
-      .hero-kicker { min-height: 26px; margin-bottom: 11px; font-size: 0.68rem; }
-      .hero h1 { font-size: clamp(1.72rem, 8vw, 2.2rem); line-height: 1.23; }
+      .hero-context { margin-bottom: 10px; font-size: 0.69rem; }
+      .hero h1 { font-size: clamp(1.68rem, 7.6vw, 2.05rem); line-height: 1.25; }
+      .hero-title-line { display: block; }
       .hero p { margin-top: 12px; font-size: 0.85rem; line-height: 1.65; }
       .tool-panel { border-radius: 17px; }
       .tool-heading { padding: 20px 18px 8px; }
@@ -708,7 +713,12 @@
   <header class="site-header">
     <div class="site-header-inner">
       <a class="site-brand" href="/" aria-label="シリアルコード読取ツール ホーム">
-        <span>シリアルコード<span class="site-brand-accent">リーダー</span></span>
+        <span class="site-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 20.3 4.8 13.5C2.8 11.6 2 10.1 2 8.3 2 5.4 4.3 3.2 7.2 3.2c1.7 0 3.4.8 4.8 2.4 1.4-1.6 3.1-2.4 4.8-2.4 2.9 0 5.2 2.2 5.2 5.1 0 1.8-.8 3.3-2.8 5.2L12 20.3Z"></path>
+          </svg>
+        </span>
+        <span>シリアルコードリーダー</span>
       </a>
       <nav class="site-nav" aria-label="ページ内ナビゲーション">
         <a href="#how-to">使い方</a>
@@ -719,8 +729,8 @@
 
   <main class="app-shell">
     <section class="hero" aria-labelledby="pageTitle">
-      <div class="hero-kicker">CD・商品・特典のコード整理に</div>
-      <h1 id="pageTitle">シリアルコードを、<span>写真からかんたん読み取り</span></h1>
+      <p class="hero-context">CDや商品、特典のコード整理に</p>
+      <h1 id="pageTitle"><span class="hero-title-line">写真からシリアルコードを</span><span class="hero-title-line">かんたん読み取り</span></h1>
       <p>画像に写ったシリアル番号・英数字コードを読み取り、個別コピー・一括コピー・CSV出力ができます。複数の写真も選択した順番のまま、まとめて処理できます。</p>
     </section>
 
@@ -1232,6 +1242,10 @@
       runBtn.disabled = busy || imageItems.length === 0;
       runBtn.textContent = batchRunning ? '読み取り中…' : failedBatchRunning ? '再読取中…' : '読み取りを開始';
       retryFailedBtn.disabled = busy;
+      codeList.querySelectorAll('.btn-retry').forEach(button => {
+        const index = Number(button.dataset.imageIndex);
+        button.disabled = batchRunning || failedBatchRunning || individualRetries.has(index);
+      });
     }
 
     function syncEditedResult(index) {
@@ -1349,6 +1363,7 @@
             retryButton.className = 'btn-item btn-retry';
             retryButton.type = 'button';
             retryButton.textContent = '再読取';
+            retryButton.dataset.imageIndex = String(index);
             retryButton.setAttribute('aria-label', `${index + 1}枚目の画像を再読取`);
             retryButton.disabled = batchRunning || failedBatchRunning || individualRetries.has(index);
             retryButton.addEventListener('click', () => retryItem(index));
