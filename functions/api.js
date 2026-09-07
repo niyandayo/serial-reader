@@ -5,6 +5,19 @@ const MAX_JSON_BODY_SIZE_BYTES = 7 * 1024 * 1024;
 const SERIAL_CODE_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const BASE64_CHARACTER_PATTERN = /^[A-Za-z0-9+/=]+$/;
 
+const ERROR_MESSAGES = {
+  invalid_input: "入力内容が正しくありません。画像を選び直してもう一度お試しください。",
+  payload_too_large: "送信する画像データが大きすぎます。画像を選び直してください。",
+  method_not_allowed: "この操作にはPOSTメソッドが必要です。",
+  service_unavailable: "現在、読み取りサービスを利用できません。時間をおいてもう一度お試しください。",
+  gemini_429: "画像を読み取れませんでした。時間をおいてもう一度お試しください。",
+  gemini_5xx: "画像を読み取れませんでした。もう一度お試しください。",
+  network_error: "一時的な通信エラーが発生しました。もう一度お試しください。",
+  invalid_upstream_response: "AIサービスから一時的に正しい応答を受信できませんでした。もう一度お試しください。",
+  gemini_rejected: "画像を読み取れませんでした。もう一度お試しください。",
+  invalid_output: "シリアル番号を認識できませんでした。画像を確認してもう一度お試しください。"
+};
+
 function jsonResponse(body, status, extraHeaders = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -15,12 +28,66 @@ function jsonResponse(body, status, extraHeaders = {}) {
   });
 }
 
-function invalidRequest() {
-  return jsonResponse({ error: "入力内容が正しくありません。画像を選び直してもう一度お試しください。" }, 400);
+function createRequestId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `req-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function payloadTooLarge() {
-  return jsonResponse({ error: "送信する画像データが大きすぎます。画像を選び直してください。" }, 413);
+function logApiResult({ requestId, status, errorCode, retryable, startedAt, upstreamStatus }) {
+  const entry = {
+    event: errorCode ? "image_extract_failed" : "image_extract_succeeded",
+    requestId,
+    status,
+    durationMs: Math.max(0, Date.now() - startedAt)
+  };
+
+  if (errorCode) {
+    entry.errorCode = errorCode;
+    entry.retryable = retryable;
+  }
+  if (Number.isInteger(upstreamStatus)) {
+    entry.upstreamStatus = upstreamStatus;
+  }
+
+  const serializedEntry = JSON.stringify(entry);
+  if (errorCode) {
+    console.warn(serializedEntry);
+  } else {
+    console.info(serializedEntry);
+  }
+}
+
+function errorResponse({
+  requestId,
+  status,
+  errorCode,
+  retryable = false,
+  startedAt,
+  upstreamStatus,
+  extraHeaders = {}
+}) {
+  logApiResult({ requestId, status, errorCode, retryable, startedAt, upstreamStatus });
+  return jsonResponse(
+    {
+      error: ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.service_unavailable,
+      errorCode,
+      retryable,
+      requestId
+    },
+    status,
+    { "X-Request-ID": requestId, ...extraHeaders }
+  );
+}
+
+function successResponse({ requestId, code, startedAt }) {
+  logApiResult({ requestId, status: 200, startedAt });
+  return jsonResponse(
+    { code, requestId },
+    200,
+    { "X-Request-ID": requestId }
+  );
 }
 
 async function readJsonBodyWithLimit(request) {
@@ -97,46 +164,55 @@ function validateImageInput(payload) {
 
 export async function onRequest(context) {
   const { request, env } = context;
+  const requestId = createRequestId();
+  const startedAt = Date.now();
 
   if (request.method !== "POST") {
-    return jsonResponse(
-      { error: "この操作にはPOSTメソッドが必要です。" },
-      405,
-      { Allow: "POST" }
-    );
+    return errorResponse({
+      requestId,
+      status: 405,
+      errorCode: "method_not_allowed",
+      startedAt,
+      extraHeaders: { Allow: "POST" }
+    });
   }
 
   const contentType = request.headers.get("Content-Type") || "";
   if (!/^application\/json(?:\s*;|$)/i.test(contentType)) {
-    return invalidRequest();
+    return errorResponse({ requestId, status: 400, errorCode: "invalid_input", startedAt });
   }
 
   const contentLength = request.headers.get("Content-Length");
   if (contentLength && /^\d+$/.test(contentLength)) {
     const declaredLength = Number(contentLength);
     if (!Number.isSafeInteger(declaredLength) || declaredLength > MAX_JSON_BODY_SIZE_BYTES) {
-      return payloadTooLarge();
+      return errorResponse({ requestId, status: 413, errorCode: "payload_too_large", startedAt });
     }
   }
 
   const bodyResult = await readJsonBodyWithLimit(request);
-  if (bodyResult.tooLarge) return payloadTooLarge();
-  if (bodyResult.invalid) return invalidRequest();
+  if (bodyResult.tooLarge) {
+    return errorResponse({ requestId, status: 413, errorCode: "payload_too_large", startedAt });
+  }
+  if (bodyResult.invalid) {
+    return errorResponse({ requestId, status: 400, errorCode: "invalid_input", startedAt });
+  }
   const { payload } = bodyResult;
 
   if (!validateImageInput(payload)) {
-    return invalidRequest();
+    return errorResponse({ requestId, status: 400, errorCode: "invalid_input", startedAt });
   }
 
   const { imageBase64, mimeType } = payload;
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) {
-    return jsonResponse({ error: "現在、読み取りサービスを利用できません。時間をおいてもう一度お試しください。" }, 500);
+    return errorResponse({ requestId, status: 500, errorCode: "service_unavailable", startedAt });
   }
 
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+  let response;
   try {
-    const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
-    const response = await fetch(endpoint, {
+    response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -151,25 +227,81 @@ export async function onRequest(context) {
         }]
       })
     });
-
-    if (response.status === 429) {
-      return jsonResponse({ error: "画像を読み取れませんでした。もう一度お試しください。", retryable: true }, 429);
-    }
-    if (response.status >= 500 && response.status <= 599) {
-      return jsonResponse({ error: "画像を読み取れませんでした。もう一度お試しください。", retryable: true }, 502);
-    }
-    if (!response.ok) {
-      return jsonResponse({ error: "画像を読み取れませんでした。もう一度お試しください。", retryable: false }, 502);
-    }
-
-    const data = await response.json();
-    const code = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (typeof code !== "string" || !SERIAL_CODE_PATTERN.test(code)) {
-      return jsonResponse({ error: "シリアル番号を認識できませんでした。画像を確認してもう一度お試しください。" }, 422);
-    }
-
-    return jsonResponse({ code }, 200);
   } catch {
-    return jsonResponse({ error: "画像を読み取れませんでした。もう一度お試しください。" }, 502);
+    return errorResponse({
+      requestId,
+      status: 502,
+      errorCode: "network_error",
+      retryable: true,
+      startedAt
+    });
   }
+
+  if (response.status === 429) {
+    return errorResponse({
+      requestId,
+      status: 429,
+      errorCode: "gemini_429",
+      retryable: true,
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+  if (response.status >= 500 && response.status <= 599) {
+    return errorResponse({
+      requestId,
+      status: 502,
+      errorCode: "gemini_5xx",
+      retryable: true,
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+  if (response.status === 408) {
+    return errorResponse({
+      requestId,
+      status: 502,
+      errorCode: "network_error",
+      retryable: true,
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+  if (!response.ok) {
+    return errorResponse({
+      requestId,
+      status: 502,
+      errorCode: "gemini_rejected",
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    return errorResponse({
+      requestId,
+      status: 502,
+      errorCode: "invalid_upstream_response",
+      retryable: true,
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+
+  const rawCode = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const code = typeof rawCode === "string" ? rawCode.trim() : "";
+  if (!SERIAL_CODE_PATTERN.test(code)) {
+    return errorResponse({
+      requestId,
+      status: 422,
+      errorCode: "invalid_output",
+      startedAt,
+      upstreamStatus: response.status
+    });
+  }
+
+  return successResponse({ requestId, code, startedAt });
 }
