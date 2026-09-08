@@ -855,10 +855,12 @@
     const MAX_RETRIES = 2;
     const RETRY_BASE_DELAY_MS = 1000;
     const RETRY_JITTER_MS = 500;
+    const MAX_RETRY_DELAY_MS = 60000;
 
     let imageItems = [];
     let batchRunning = false;
     let failedBatchRunning = false;
+    let batchQuotaBlock = null;
     let activeRequestCount = 0;
     const requestWaiters = [];
     const individualRetries = new Set();
@@ -886,6 +888,7 @@
     fileInput.addEventListener('change', function() {
       if (!this.files || this.files.length === 0) return;
 
+      batchQuotaBlock = null;
       imageItems = Array.from(this.files).map((file, index) => ({
         id: index,
         file,
@@ -999,16 +1002,34 @@
 
     const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
-    function getRetryDelayMs(retryCount) {
+    function getRetryDelayMs(retryCount, suggestedDelayMs) {
       const exponentialDelay = RETRY_BASE_DELAY_MS * (2 ** retryCount);
       const jitter = Math.floor(Math.random() * RETRY_JITTER_MS);
-      return exponentialDelay + jitter;
+      const serverDelay = Number.isInteger(suggestedDelayMs) ? suggestedDelayMs : 0;
+      return Math.min(MAX_RETRY_DELAY_MS, Math.max(exponentialDelay, serverDelay) + jitter);
     }
 
-    function createExtractionError(errorCode) {
+    function createExtractionError(errorCode, metadata = {}) {
       const error = new Error('読み取りに失敗しました');
       error.errorCode = errorCode;
+      if (['short_term', 'daily', 'unknown'].includes(metadata.quotaScope)) {
+        error.quotaScope = metadata.quotaScope;
+      }
       return error;
+    }
+
+    function getSafeQuotaScope(data) {
+      return ['short_term', 'daily', 'unknown'].includes(data?.quotaScope)
+        ? data.quotaScope
+        : undefined;
+    }
+
+    function getSafeRetryDelayMs(data) {
+      return Number.isInteger(data?.retryDelayMs)
+        && data.retryDelayMs >= 1000
+        && data.retryDelayMs <= MAX_RETRY_DELAY_MS
+        ? data.retryDelayMs
+        : undefined;
     }
 
     function getSafeErrorCode(data, response) {
@@ -1023,7 +1044,7 @@
       return 'unknown_error';
     }
 
-    function logClientResult({ event, imageIndex, attempt, errorCode, statusCode, durationMs, retryInMs, requestId }) {
+    function logClientResult({ event, imageIndex, attempt, errorCode, statusCode, durationMs, retryInMs, requestId, quotaScope }) {
       const entry = {
         event,
         imageIndex: imageIndex + 1,
@@ -1037,12 +1058,17 @@
       if (typeof requestId === 'string' && /^[A-Za-z0-9-]{1,80}$/.test(requestId)) {
         entry.requestId = requestId;
       }
+      if (['short_term', 'daily', 'unknown'].includes(quotaScope)) {
+        entry.quotaScope = quotaScope;
+      }
       console.warn(JSON.stringify(entry));
     }
 
     function getFailureMessage(errorCode) {
       return {
         gemini_429: 'アクセスが混み合っています。時間をおいて再読み取りしてください。',
+        gemini_rate_limit: 'アクセスが集中しています。少し時間をおいて再読み取りしてください。',
+        gemini_daily_quota: '現在、読み取り回数の上限に達しています。時間をおいて再読み取りしてください。',
         gemini_5xx: 'AIサービスで一時的なエラーが発生しました。再読み取りできます。',
         network_error: '一時的な通信エラーが発生しました。通信環境を確認して再読み取りしてください。',
         invalid_upstream_response: 'AIサービスから一時的に正しい応答を受信できませんでした。再読み取りできます。',
@@ -1114,10 +1140,9 @@
       try {
         data = await response.json();
       } catch {
-        const errorCode = 'network_error';
+        const errorCode = 'invalid_upstream_response';
         const temporaryStatus = response.ok
           || response.status === 408
-          || response.status === 429
           || (response.status >= 500 && response.status <= 599);
         const canRetry = temporaryStatus && retryCount < MAX_RETRIES;
         const retryInMs = canRetry ? getRetryDelayMs(retryCount) : undefined;
@@ -1141,8 +1166,10 @@
         || response.status === 429
         || (response.status >= 500 && response.status <= 599);
       const errorCode = getSafeErrorCode(data, response);
-      if (data?.retryable === true && retryableStatus && retryCount < MAX_RETRIES) {
-        const retryInMs = getRetryDelayMs(retryCount);
+      const quotaScope = getSafeQuotaScope(data);
+      const quotaRetryAllowed = response.status !== 429 || quotaScope === 'short_term';
+      if (data?.retryable === true && retryableStatus && quotaRetryAllowed && retryCount < MAX_RETRIES) {
+        const retryInMs = getRetryDelayMs(retryCount, getSafeRetryDelayMs(data));
         logClientResult({
           event: 'image_extract_retry',
           imageIndex,
@@ -1151,7 +1178,8 @@
           statusCode: response.status,
           durationMs: Date.now() - startedAt,
           retryInMs,
-          requestId: data?.requestId
+          requestId: data?.requestId,
+          quotaScope
         });
         await sleep(retryInMs);
         return requestExtraction(base64, imageIndex, retryCount + 1);
@@ -1166,9 +1194,10 @@
           errorCode: finalErrorCode,
           statusCode: response.status,
           durationMs: Date.now() - startedAt,
-          requestId: data?.requestId
+          requestId: data?.requestId,
+          quotaScope
         });
-        throw createExtractionError(finalErrorCode);
+        throw createExtractionError(finalErrorCode, { quotaScope });
       }
       return data.code;
     }
@@ -1380,6 +1409,16 @@
 
     async function processItem(index) {
       const item = imageItems[index];
+      if ((batchRunning || failedBatchRunning) && batchQuotaBlock?.quotaScope === 'daily') {
+        item.code = '';
+        item.errorCode = batchQuotaBlock.errorCode;
+        item.status = 'error';
+        item.copied = false;
+        updateDuplicateFlags();
+        renderList();
+        updateProgress();
+        return;
+      }
       item.status = item.base64 ? 'processing' : 'preparing';
       item.errorCode = '';
       item.copied = false;
@@ -1397,6 +1436,9 @@
           item.base64 = compressed.base64;
           item.thumbnail = compressed.thumbnail;
         }
+        if ((batchRunning || failedBatchRunning) && batchQuotaBlock?.quotaScope === 'daily') {
+          throw createExtractionError(batchQuotaBlock.errorCode, { quotaScope: 'daily' });
+        }
         item.status = 'processing';
         renderList();
         item.code = await requestExtraction(item.base64, index);
@@ -1405,6 +1447,9 @@
         item.code = '';
         item.errorCode = typeof error?.errorCode === 'string' ? error.errorCode : 'unknown_error';
         item.status = 'error';
+        if ((batchRunning || failedBatchRunning) && error?.quotaScope === 'daily') {
+          batchQuotaBlock = { errorCode: item.errorCode, quotaScope: 'daily' };
+        }
       }
 
       updateDuplicateFlags();
@@ -1416,6 +1461,7 @@
       if (!imageItems.length || batchRunning || failedBatchRunning || individualRetries.size) return;
 
       batchRunning = true;
+      batchQuotaBlock = null;
       imageItems.forEach(item => {
         item.code = '';
         item.status = 'queued';
@@ -1443,6 +1489,7 @@
         await Promise.all(Array.from({ length: workerCount }, () => worker()));
       } finally {
         batchRunning = false;
+        batchQuotaBlock = null;
         updateInteractionState();
         updateProgress();
       }
@@ -1453,6 +1500,7 @@
       if (!item || item.status !== 'error' || batchRunning || failedBatchRunning || individualRetries.has(index)) return;
 
       individualRetries.add(index);
+      batchQuotaBlock = null;
       updateInteractionState();
       try {
         await processItem(index);
@@ -1471,6 +1519,7 @@
       if (!failedIndexes.length) return;
 
       failedBatchRunning = true;
+      batchQuotaBlock = null;
       progressPanel.hidden = false;
       updateInteractionState();
       updateProgress('失敗した画像を再読取中');
@@ -1489,6 +1538,7 @@
         await Promise.all(Array.from({ length: workerCount }, () => retryWorker()));
       } finally {
         failedBatchRunning = false;
+        batchQuotaBlock = null;
         updateDuplicateFlags();
         updateInteractionState();
         updateProgress();
