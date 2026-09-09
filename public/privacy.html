@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#fcf9f7">
+  <meta name="description" content="シリアルコードリーダーにおける画像・AI処理・外部サービスの取り扱いについて説明します。">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://serial-reader-6nj.pages.dev/privacy.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:site_name" content="シリアルコードリーダー">
+  <meta property="og:title" content="プライバシーポリシー｜シリアルコードリーダー">
+  <meta property="og:description" content="画像のAI処理と外部サービスの利用についてご案内します。">
+  <meta property="og:url" content="https://serial-reader-6nj.pages.dev/privacy.html">
+  <meta name="twitter:card" content="summary">
+  <title>プライバシーポリシー｜シリアルコードリーダー</title>
+  <link rel="stylesheet" href="/info.css">
+</head>
+<body>
+  <header class="site-header"><div class="site-header-inner"><a class="site-brand" href="/">シリアルコードリーダー</a><a class="back-link" href="/">ツールへ戻る</a></div></header>
+  <main class="page-shell">
+    <header class="page-header">
+      <p class="page-kicker">PRIVACY</p>
+      <h1>プライバシーポリシー</h1>
+      <p class="page-lead">本サービスで画像や通信情報がどのように処理されるか、現在確認できる範囲で説明します。</p>
+    </header>
+    <section class="content-block">
+      <h2>画像とシリアルコードの処理</h2>
+      <p>利用者が選択した画像は、シリアルコードを読み取るためにブラウザ上で圧縮・Base64変換された後、本サービスのCloudflare Pages Functionsを経由してCloudflare Workers AIへ送信され、AI処理されます。</p>
+      <p>本サイトのコードには、選択画像や読み取り結果をデータベースやクラウドストレージへ保存する機能はありません。ただし、Cloudflareの基盤上で行われる処理や保持期間について、本サイトが独自に「一切保存されない」「学習に使われない」と保証するものではありません。機密情報や個人情報を含む画像の利用は避けてください。</p>
+    </section>
+    <section class="content-block">
+      <h2>ログ</h2>
+      <p>本サービスのコードは、APIキー、画像データ、ファイル名、読み取ったシリアルコード、AIの生応答をアプリケーションログへ出力しない設計です。障害調査のため、リクエスト識別子、処理時間、成功・失敗、エラー分類など、内容を含まない情報を記録する場合があります。</p>
+    </section>
+    <section class="content-block">
+      <h2>利用している外部基盤</h2>
+      <p>サイト配信と画像読み取り処理にCloudflare Pages、Pages Functions、Workers AIを利用しています。サービスへのアクセスに伴い、Cloudflare側で通信情報が処理される場合があります。詳細はCloudflareが公開するプライバシーポリシー等をご確認ください。</p>
+    </section>
+    <section class="content-block">
+      <h2>アクセス解析・広告</h2>
+      <p>現在、本サイトのコードにはGoogle AnalyticsやGoogle AdSenseなどのアクセス解析・広告配信コードを導入していません。将来広告サービス等を導入する場合は、Cookie等の利用を含む必要な説明を追記し、本ポリシーを更新します。</p>
+    </section>
+    <section class="content-block">
+      <h2>ポリシーの変更</h2>
+      <p>機能や利用サービスの変更に応じて、本ポリシーを改定する場合があります。重要な変更は本ページでお知らせします。</p>
+    </section>
+    <p class="updated">制定日：2026年9月9日</p>
+  </main>
+  <footer class="site-footer"><div class="site-footer-inner"><nav class="footer-nav" aria-label="フッターナビゲーション"><a href="/">トップ</a><a href="/about.html">このサイトについて</a><a href="/privacy.html">プライバシーポリシー</a><a href="/terms.html">利用規約</a><a href="/contact.html">お問い合わせ</a></nav><span class="copyright">© シリアルコード読取ツール</span></div></footer>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://serial-reader-6nj.pages.dev/sitemap.xml
