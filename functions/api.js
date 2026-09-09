@@ -2,24 +2,23 @@ const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_BASE64_LENGTH = Math.ceil((MAX_IMAGE_SIZE_BYTES * 4) / 3) + 4;
 const MAX_JSON_BODY_SIZE_BYTES = 7 * 1024 * 1024;
-const MAX_RETRY_DELAY_MS = 60 * 1000;
 const SERIAL_CODE_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const BASE64_CHARACTER_PATTERN = /^[A-Za-z0-9+/=]+$/;
-const SAFE_QUOTA_FIELD_PATTERN = /^[A-Za-z0-9._:/-]{1,180}$/;
-const GEMINI_MODEL = "gemini-3.6-flash";
+const WORKERS_AI_PROVIDER = "workers_ai";
+const WORKERS_AI_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
+const WORKERS_AI_PROMPT = "写真に写っているシリアルコードと思われる英数字を正確に1つ読み取ってください。コードそのものだけを返し、説明文、Markdown、引用符、空白、余計な改行を付けないでください。推測で文字を補完しすぎず、大文字小文字とハイフン、アンダースコアを画像どおりに保ってください。";
 
 const ERROR_MESSAGES = {
   invalid_input: "入力内容が正しくありません。画像を選び直してもう一度お試しください。",
   payload_too_large: "送信する画像データが大きすぎます。画像を選び直してください。",
   method_not_allowed: "この操作にはPOSTメソッドが必要です。",
   service_unavailable: "現在、読み取りサービスを利用できません。時間をおいてもう一度お試しください。",
-  gemini_429: "画像を読み取れませんでした。時間をおいてもう一度お試しください。",
-  gemini_rate_limit: "アクセスが集中しています。少し時間をおいてもう一度お試しください。",
-  gemini_daily_quota: "現在、読み取り回数の上限に達しています。時間をおいてもう一度お試しください。",
-  gemini_5xx: "画像を読み取れませんでした。もう一度お試しください。",
+  workers_ai_error: "読み取り処理で一時的なエラーが発生しました。もう一度お試しください。",
+  workers_ai_rate_limit: "アクセスが集中しています。少し時間をおいてもう一度お試しください。",
+  workers_ai_quota: "本日の読み取り上限に達しました。時間をおいて再度お試しください。",
+  workers_ai_license_required: "読み取りサービスの準備が完了していません。時間をおいてもう一度お試しください。",
   network_error: "一時的な通信エラーが発生しました。もう一度お試しください。",
   invalid_upstream_response: "AIサービスから一時的に正しい応答を受信できませんでした。もう一度お試しください。",
-  gemini_rejected: "画像を読み取れませんでした。もう一度お試しください。",
   invalid_output: "シリアル番号を認識できませんでした。画像を確認してもう一度お試しください。"
 };
 
@@ -47,14 +46,15 @@ function logApiResult({
   retryable,
   startedAt,
   upstreamStatus,
-  quotaScope,
-  quotaIds,
-  quotaMetrics,
+  workersAiErrorCode,
+  limitScope,
   retryDelayMs
 }) {
   const entry = {
     event: errorCode ? "image_extract_failed" : "image_extract_succeeded",
     requestId,
+    provider: WORKERS_AI_PROVIDER,
+    model: WORKERS_AI_MODEL,
     status,
     durationMs: Math.max(0, Date.now() - startedAt)
   };
@@ -66,14 +66,11 @@ function logApiResult({
   if (Number.isInteger(upstreamStatus)) {
     entry.upstreamStatus = upstreamStatus;
   }
-  if (["short_term", "daily", "unknown"].includes(quotaScope)) {
-    entry.quotaScope = quotaScope;
+  if (Number.isInteger(workersAiErrorCode)) {
+    entry.workersAiErrorCode = workersAiErrorCode;
   }
-  if (Array.isArray(quotaIds) && quotaIds.length) {
-    entry.quotaIds = quotaIds;
-  }
-  if (Array.isArray(quotaMetrics) && quotaMetrics.length) {
-    entry.quotaMetrics = quotaMetrics;
+  if (limitScope === "daily") {
+    entry.limitScope = limitScope;
   }
   if (Number.isInteger(retryDelayMs)) {
     entry.retryDelayMs = retryDelayMs;
@@ -94,9 +91,8 @@ function errorResponse({
   retryable = false,
   startedAt,
   upstreamStatus,
-  quotaScope,
-  quotaIds,
-  quotaMetrics,
+  workersAiErrorCode,
+  limitScope,
   retryDelayMs,
   extraHeaders = {}
 }) {
@@ -107,9 +103,8 @@ function errorResponse({
     retryable,
     startedAt,
     upstreamStatus,
-    quotaScope,
-    quotaIds,
-    quotaMetrics,
+    workersAiErrorCode,
+    limitScope,
     retryDelayMs
   });
   const body = {
@@ -118,8 +113,8 @@ function errorResponse({
     retryable,
     requestId
   };
-  if (["short_term", "daily", "unknown"].includes(quotaScope)) {
-    body.quotaScope = quotaScope;
+  if (limitScope === "daily") {
+    body.limitScope = limitScope;
   }
   if (Number.isInteger(retryDelayMs)) {
     body.retryDelayMs = retryDelayMs;
@@ -212,167 +207,91 @@ function validateImageInput(payload) {
   }
 }
 
-function toSafeQuotaField(value) {
-  return typeof value === "string" && SAFE_QUOTA_FIELD_PATTERN.test(value) ? value : "";
+function toSafeInteger(value) {
+  if (Number.isInteger(value)) return value;
+  if (typeof value === "string" && /^\d{3,5}$/.test(value)) return Number(value);
+  return undefined;
 }
 
-function parseRetryDelayMs(value) {
-  if (typeof value !== "string") return undefined;
-  const match = /^(\d+)(?:\.(\d{1,9}))?s$/.exec(value);
-  if (!match) return undefined;
-  const milliseconds = Math.ceil(Number(match[1]) * 1000 + Number(`0.${match[2] || "0"}`) * 1000);
-  if (!Number.isSafeInteger(milliseconds)) return undefined;
-  return Math.min(MAX_RETRY_DELAY_MS, Math.max(1000, milliseconds));
-}
+function getWorkersAiErrorMetadata(error) {
+  const candidates = [error, error?.cause, error?.error];
+  let workersAiErrorCode;
+  let upstreamStatus;
+  let errorName = "";
 
-function parseRetryAfterHeader(value) {
-  if (typeof value !== "string" || !value.trim()) return undefined;
-  if (/^\d+$/.test(value.trim())) {
-    return Math.min(MAX_RETRY_DELAY_MS, Math.max(1000, Number(value.trim()) * 1000));
-  }
-  const retryAt = Date.parse(value);
-  if (!Number.isFinite(retryAt)) return undefined;
-  return Math.min(MAX_RETRY_DELAY_MS, Math.max(1000, retryAt - Date.now()));
-}
-
-function classifyQuotaScope(quotaIds) {
-  let hasShortTerm = false;
-  for (const quotaId of quotaIds) {
-    const isDaily = /PerDay(?:Per|[-_.]|$)/.test(quotaId)
-      || /(?:^|[-_.])(?:per[-_]?day|daily)(?:[-_.]|$)/i.test(quotaId);
-    const isShortTerm = /Per(?:Minute|Second)(?:Per|[-_.]|$)/.test(quotaId)
-      || /(?:^|[-_.])per[-_]?(?:minute|second)(?:[-_.]|$)/i.test(quotaId);
-    if (isDaily) return "daily";
-    if (isShortTerm) hasShortTerm = true;
-  }
-  return hasShortTerm ? "short_term" : "unknown";
-}
-
-function extractGeminiQuotaMetadata(data, response) {
-  const quotaIds = [];
-  const quotaMetrics = [];
-  let retryDelayMs;
-  const details = Array.isArray(data?.error?.details) ? data.error.details : [];
-
-  for (const detail of details) {
-    const type = typeof detail?.["@type"] === "string" ? detail["@type"] : "";
-    if (type.endsWith("/google.rpc.QuotaFailure") && Array.isArray(detail.violations)) {
-      for (const violation of detail.violations) {
-        const quotaId = toSafeQuotaField(violation?.quotaId);
-        const quotaMetric = toSafeQuotaField(violation?.quotaMetric);
-        if (quotaId && !quotaIds.includes(quotaId)) quotaIds.push(quotaId);
-        if (quotaMetric && !quotaMetrics.includes(quotaMetric)) quotaMetrics.push(quotaMetric);
-      }
-    }
-    if (type.endsWith("/google.rpc.RetryInfo")) {
-      retryDelayMs = parseRetryDelayMs(detail?.retryDelay) ?? retryDelayMs;
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    workersAiErrorCode = workersAiErrorCode ?? toSafeInteger(candidate.code);
+    upstreamStatus = upstreamStatus
+      ?? toSafeInteger(candidate.status)
+      ?? toSafeInteger(candidate.statusCode);
+    if (!errorName && typeof candidate.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,39}$/.test(candidate.name)) {
+      errorName = candidate.name;
     }
   }
 
-  retryDelayMs = retryDelayMs ?? parseRetryAfterHeader(response.headers.get("Retry-After"));
-  return {
-    quotaScope: classifyQuotaScope(quotaIds),
-    quotaIds: quotaIds.slice(0, 4),
-    quotaMetrics: quotaMetrics.slice(0, 4),
-    retryDelayMs
-  };
+  return { workersAiErrorCode, upstreamStatus, errorName };
 }
 
-async function callGemini({ apiKey, imageBase64, mimeType }) {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-  let response;
+function classifyWorkersAiError(error) {
+  const metadata = getWorkersAiErrorMetadata(error);
+  const { workersAiErrorCode, upstreamStatus, errorName } = metadata;
+
+  if (workersAiErrorCode === 3036) {
+    return { ...metadata, status: 429, errorCode: "workers_ai_quota", retryable: false, limitScope: "daily" };
+  }
+  if (workersAiErrorCode === 3040) {
+    return { ...metadata, status: 429, errorCode: "workers_ai_rate_limit", retryable: true };
+  }
+  if (workersAiErrorCode === 5016) {
+    return { ...metadata, status: 503, errorCode: "workers_ai_license_required", retryable: false };
+  }
+  if ([3007, 3008].includes(workersAiErrorCode)
+      || upstreamStatus === 408
+      || ["AbortError", "NetworkError", "TimeoutError"].includes(errorName)) {
+    return { ...metadata, status: 502, errorCode: "network_error", retryable: true };
+  }
+  if (upstreamStatus === 429) {
+    return { ...metadata, status: 429, errorCode: "workers_ai_error", retryable: false };
+  }
+  if (Number.isInteger(upstreamStatus) && upstreamStatus >= 500 && upstreamStatus <= 599) {
+    return { ...metadata, status: 502, errorCode: "workers_ai_error", retryable: true };
+  }
+  return { ...metadata, status: 502, errorCode: "workers_ai_error", retryable: false };
+}
+
+async function callWorkersAi({ ai, imageBase64, mimeType }) {
+  let result;
   try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: "画像内に記載されている「シリアルナンバー」「シリアルコード」に該当する英数字、ハイフン、アンダースコアのみから成る文字列を1件だけ抽出してください。前置き、解説、記号、改行は一切含めず、コード文字列のみを1行で出力してください。" },
-            { inline_data: { mime_type: mimeType, data: imageBase64 } }
-          ]
-        }]
-      })
+    result = await ai.run(WORKERS_AI_MODEL, {
+      messages: [
+        { role: "system", content: "画像からシリアルコードを正確に読み取るアシスタントです。" },
+        { role: "user", content: WORKERS_AI_PROMPT }
+      ],
+      image: `data:${mimeType};base64,${imageBase64}`,
+      temperature: 0,
+      max_tokens: 160,
+      seed: 1
     });
-  } catch {
-    return { ok: false, status: 502, errorCode: "network_error", retryable: true };
+  } catch (error) {
+    return { ok: false, ...classifyWorkersAiError(error) };
   }
 
-  if (response.status === 429) {
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch {
-      errorData = null;
-    }
-    const quota = extractGeminiQuotaMetadata(errorData, response);
-    const errorCode = quota.quotaScope === "daily"
-      ? "gemini_daily_quota"
-      : quota.quotaScope === "short_term"
-        ? "gemini_rate_limit"
-        : "gemini_429";
-    return {
-      ok: false,
-      status: 429,
-      errorCode,
-      retryable: quota.quotaScope === "short_term",
-      upstreamStatus: response.status,
-      ...quota
-    };
-  }
-  if (response.status >= 500 && response.status <= 599) {
-    return {
-      ok: false,
-      status: 502,
-      errorCode: "gemini_5xx",
-      retryable: true,
-      upstreamStatus: response.status
-    };
-  }
-  if (response.status === 408) {
-    return {
-      ok: false,
-      status: 502,
-      errorCode: "network_error",
-      retryable: true,
-      upstreamStatus: response.status
-    };
-  }
-  if (!response.ok) {
-    return {
-      ok: false,
-      status: 502,
-      errorCode: "gemini_rejected",
-      retryable: false,
-      upstreamStatus: response.status
-    };
+  if (result && typeof result === "object" && !Array.isArray(result) && result.error) {
+    return { ok: false, ...classifyWorkersAiError(result.error) };
   }
 
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    return {
-      ok: false,
-      status: 502,
-      errorCode: "invalid_upstream_response",
-      retryable: true,
-      upstreamStatus: response.status
-    };
+  if (!result || typeof result !== "object" || Array.isArray(result) || typeof result.response !== "string") {
+    return { ok: false, status: 502, errorCode: "invalid_upstream_response", retryable: true };
   }
 
-  const rawCode = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  const code = typeof rawCode === "string" ? rawCode.trim() : "";
+  const code = result.response.trim();
   if (!SERIAL_CODE_PATTERN.test(code)) {
     return {
       ok: false,
       status: 422,
       errorCode: "invalid_output",
-      retryable: false,
-      upstreamStatus: response.status
+      retryable: false
     };
   }
 
@@ -421,12 +340,11 @@ export async function onRequest(context) {
   }
 
   const { imageBase64, mimeType } = payload;
-  const apiKey = env.GEMINI_API_KEY;
-  if (!apiKey) {
+  if (!env.AI || typeof env.AI.run !== "function") {
     return errorResponse({ requestId, status: 500, errorCode: "service_unavailable", startedAt });
   }
 
-  const result = await callGemini({ apiKey, imageBase64, mimeType });
+  const result = await callWorkersAi({ ai: env.AI, imageBase64, mimeType });
   if (!result.ok) {
     const extraHeaders = {};
     if (result.retryable && Number.isInteger(result.retryDelayMs)) {
@@ -439,9 +357,8 @@ export async function onRequest(context) {
       retryable: result.retryable,
       startedAt,
       upstreamStatus: result.upstreamStatus,
-      quotaScope: result.quotaScope,
-      quotaIds: result.quotaIds,
-      quotaMetrics: result.quotaMetrics,
+      workersAiErrorCode: result.workersAiErrorCode,
+      limitScope: result.limitScope,
       retryDelayMs: result.retryDelayMs,
       extraHeaders
     });

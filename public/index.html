@@ -864,7 +864,7 @@
     let imageItems = [];
     let batchRunning = false;
     let failedBatchRunning = false;
-    let batchQuotaBlock = null;
+    let batchLimitBlock = null;
     let activeRequestCount = 0;
     const requestWaiters = [];
     const individualRetries = new Set();
@@ -892,7 +892,7 @@
     fileInput.addEventListener('change', function() {
       if (!this.files || this.files.length === 0) return;
 
-      batchQuotaBlock = null;
+      batchLimitBlock = null;
       imageItems = Array.from(this.files).map((file, index) => ({
         id: index,
         file,
@@ -1016,16 +1016,16 @@
     function createExtractionError(errorCode, metadata = {}) {
       const error = new Error('読み取りに失敗しました');
       error.errorCode = errorCode;
-      if (['short_term', 'daily', 'unknown'].includes(metadata.quotaScope)) {
-        error.quotaScope = metadata.quotaScope;
+      if (metadata.limitScope === 'daily') {
+        error.limitScope = metadata.limitScope;
       }
       return error;
     }
 
-    function getSafeQuotaScope(data) {
-      return ['short_term', 'daily', 'unknown'].includes(data?.quotaScope)
-        ? data.quotaScope
-        : undefined;
+    function getSafeLimitScope(data) {
+      if (data?.limitScope === 'daily') return 'daily';
+      // V3.4 APIレスポンスとの後方互換用。Workers AI経路ではlimitScopeを使用する。
+      return data?.quotaScope === 'daily' ? 'daily' : undefined;
     }
 
     function getSafeRetryDelayMs(data) {
@@ -1040,15 +1040,15 @@
       if (typeof data?.errorCode === 'string' && /^[a-z0-9_]{1,40}$/.test(data.errorCode)) {
         return data.errorCode;
       }
-      if (response.status === 429) return 'gemini_429';
-      if (response.status >= 500 && response.status <= 599) return 'gemini_5xx';
+      if (response.status === 429) return 'workers_ai_error';
+      if (response.status >= 500 && response.status <= 599) return 'workers_ai_error';
       if (response.status === 422) return 'invalid_output';
       if (response.status === 413) return 'payload_too_large';
       if (response.status === 400) return 'invalid_input';
       return 'unknown_error';
     }
 
-    function logClientResult({ event, imageIndex, attempt, errorCode, statusCode, durationMs, retryInMs, requestId, quotaScope }) {
+    function logClientResult({ event, imageIndex, attempt, errorCode, statusCode, durationMs, retryInMs, requestId, limitScope }) {
       const entry = {
         event,
         imageIndex: imageIndex + 1,
@@ -1062,14 +1062,18 @@
       if (typeof requestId === 'string' && /^[A-Za-z0-9-]{1,80}$/.test(requestId)) {
         entry.requestId = requestId;
       }
-      if (['short_term', 'daily', 'unknown'].includes(quotaScope)) {
-        entry.quotaScope = quotaScope;
+      if (limitScope === 'daily') {
+        entry.limitScope = limitScope;
       }
       console.warn(JSON.stringify(entry));
     }
 
     function getFailureMessage(errorCode) {
       return {
+        workers_ai_error: '読み取り処理で一時的なエラーが発生しました。もう一度お試しください。',
+        workers_ai_rate_limit: 'アクセスが集中しています。少し時間をおいて再読み取りしてください。',
+        workers_ai_quota: '本日の読み取り上限に達しました。時間をおいて再度お試しください。',
+        workers_ai_license_required: '読み取りサービスの準備が完了していません。時間をおいて再度お試しください。',
         gemini_429: 'アクセスが混み合っています。時間をおいて再読み取りしてください。',
         gemini_rate_limit: 'アクセスが集中しています。少し時間をおいて再読み取りしてください。',
         gemini_daily_quota: '現在、読み取り回数の上限に達しています。時間をおいて再読み取りしてください。',
@@ -1170,9 +1174,9 @@
         || response.status === 429
         || (response.status >= 500 && response.status <= 599);
       const errorCode = getSafeErrorCode(data, response);
-      const quotaScope = getSafeQuotaScope(data);
-      const quotaRetryAllowed = response.status !== 429 || quotaScope === 'short_term';
-      if (data?.retryable === true && retryableStatus && quotaRetryAllowed && retryCount < MAX_RETRIES) {
+      const limitScope = getSafeLimitScope(data);
+      const retryAllowed = limitScope !== 'daily';
+      if (data?.retryable === true && retryableStatus && retryAllowed && retryCount < MAX_RETRIES) {
         const retryInMs = getRetryDelayMs(retryCount, getSafeRetryDelayMs(data));
         logClientResult({
           event: 'image_extract_retry',
@@ -1183,7 +1187,7 @@
           durationMs: Date.now() - startedAt,
           retryInMs,
           requestId: data?.requestId,
-          quotaScope
+          limitScope
         });
         await sleep(retryInMs);
         return requestExtraction(base64, imageIndex, retryCount + 1);
@@ -1199,9 +1203,9 @@
           statusCode: response.status,
           durationMs: Date.now() - startedAt,
           requestId: data?.requestId,
-          quotaScope
+          limitScope
         });
-        throw createExtractionError(finalErrorCode, { quotaScope });
+        throw createExtractionError(finalErrorCode, { limitScope });
       }
       return data.code;
     }
@@ -1416,9 +1420,9 @@
 
     async function processItem(index) {
       const item = imageItems[index];
-      if ((batchRunning || failedBatchRunning) && batchQuotaBlock?.quotaScope === 'daily') {
+      if ((batchRunning || failedBatchRunning) && batchLimitBlock?.limitScope === 'daily') {
         item.code = '';
-        item.errorCode = batchQuotaBlock.errorCode;
+        item.errorCode = batchLimitBlock.errorCode;
         item.status = 'error';
         item.copied = false;
         updateDuplicateFlags();
@@ -1444,8 +1448,8 @@
           item.base64 = compressed.base64;
           item.thumbnail = compressed.thumbnail;
         }
-        if ((batchRunning || failedBatchRunning) && batchQuotaBlock?.quotaScope === 'daily') {
-          throw createExtractionError(batchQuotaBlock.errorCode, { quotaScope: 'daily' });
+        if ((batchRunning || failedBatchRunning) && batchLimitBlock?.limitScope === 'daily') {
+          throw createExtractionError(batchLimitBlock.errorCode, { limitScope: 'daily' });
         }
         if (needsImagePreparation) {
           item.status = 'processing';
@@ -1457,8 +1461,8 @@
         item.code = '';
         item.errorCode = typeof error?.errorCode === 'string' ? error.errorCode : 'unknown_error';
         item.status = 'error';
-        if ((batchRunning || failedBatchRunning) && error?.quotaScope === 'daily') {
-          batchQuotaBlock = { errorCode: item.errorCode, quotaScope: 'daily' };
+        if ((batchRunning || failedBatchRunning) && error?.limitScope === 'daily') {
+          batchLimitBlock = { errorCode: item.errorCode, limitScope: 'daily' };
         }
       }
 
@@ -1471,7 +1475,7 @@
       if (!imageItems.length || batchRunning || failedBatchRunning || individualRetries.size) return;
 
       batchRunning = true;
-      batchQuotaBlock = null;
+      batchLimitBlock = null;
       imageItems.forEach(item => {
         item.code = '';
         item.status = 'queued';
@@ -1499,7 +1503,7 @@
         await Promise.all(Array.from({ length: workerCount }, () => worker()));
       } finally {
         batchRunning = false;
-        batchQuotaBlock = null;
+        batchLimitBlock = null;
         if (imageItems.some(item => item.status === 'error')) renderList();
         updateInteractionState();
         updateProgress();
@@ -1511,7 +1515,7 @@
       if (!item || item.status !== 'error' || batchRunning || failedBatchRunning || individualRetries.has(index)) return;
 
       individualRetries.add(index);
-      batchQuotaBlock = null;
+      batchLimitBlock = null;
       updateInteractionState();
       try {
         await processItem(index);
@@ -1531,7 +1535,7 @@
       if (!failedIndexes.length) return;
 
       failedBatchRunning = true;
-      batchQuotaBlock = null;
+      batchLimitBlock = null;
       progressPanel.hidden = false;
       updateInteractionState();
       updateProgress('失敗した画像を再読取中');
@@ -1550,7 +1554,7 @@
         await Promise.all(Array.from({ length: workerCount }, () => retryWorker()));
       } finally {
         failedBatchRunning = false;
-        batchQuotaBlock = null;
+        batchLimitBlock = null;
         updateDuplicateFlags();
         if (imageItems.some(item => item.status === 'error')) renderList();
         updateInteractionState();
