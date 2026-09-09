@@ -4,9 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#fcf9f7">
-  <meta name="description" content="画像からシリアル番号や英数字コードを読み取り、まとめてコピー・CSV出力できる無料Webツールです。複数画像の一括処理にも対応しています。">
+  <meta name="description" content="スマホで撮影した画像からシリアル番号・英数字コードを読み取り、複数画像をまとめてコピー・CSV保存できる無料Webツールです。">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://serial-reader-6nj.pages.dev/">
-  <title>画像からシリアル番号を読み取り・コピー｜無料シリアルコード読取ツール</title>
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:site_name" content="シリアルコードリーダー">
+  <meta property="og:title" content="シリアルコードを写真から読み取り・一括コピー｜シリアルコードリーダー">
+  <meta property="og:description" content="写真に写ったシリアル番号・英数字コードを、スマホからまとめて読み取り・コピーできる無料Webツールです。">
+  <meta property="og:url" content="https://serial-reader-6nj.pages.dev/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="シリアルコードを写真から読み取り・一括コピー｜シリアルコードリーダー">
+  <meta name="twitter:description" content="写真に写ったシリアル番号・英数字コードを、スマホからまとめて読み取り・コピーできる無料Webツールです。">
+  <title>シリアルコードを写真から読み取り・一括コピー｜シリアルコードリーダー</title>
   <style>
     :root {
       --accent: #b76891;
@@ -539,8 +549,46 @@
       line-height: 1.8;
     }
     .info-section p { margin: 0; }
-    .info-section ol { margin: 0; padding-left: 1.35em; }
+    .info-section ol, .info-section ul { margin: 0; padding-left: 1.35em; }
     .info-section li + li { margin-top: 4px; }
+    .info-section .section-lead { margin-bottom: 10px; }
+    .info-card {
+      padding: 20px 21px 22px;
+      border: 1px solid rgba(235, 215, 225, 0.78);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+    .info-card ul { padding-left: 1.2em; }
+    .steps-section ol {
+      display: grid;
+      padding: 0;
+      gap: 8px;
+      list-style: none;
+      counter-reset: tool-step;
+    }
+    .steps-section li {
+      position: relative;
+      min-height: 28px;
+      padding: 3px 0 3px 37px;
+      counter-increment: tool-step;
+    }
+    .steps-section li::before {
+      position: absolute;
+      top: 1px;
+      left: 0;
+      display: grid;
+      width: 27px;
+      height: 27px;
+      border: 1px solid #ead6e0;
+      border-radius: 50%;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      content: counter(tool-step);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
     .faq-section {
       display: grid;
       grid-column: 1 / -1;
@@ -600,7 +648,7 @@
       justify-content: space-between;
       gap: 20px;
     }
-    .footer-nav { display: flex; gap: 20px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 10px 20px; }
     .footer-nav a, .copyright { color: var(--muted-light); font-size: 0.72rem; }
     .footer-nav a { text-decoration: none; }
 
@@ -690,6 +738,8 @@
       .btn-item { min-width: 62px; min-height: 44px; padding: 0 10px; }
       .content-sections { grid-template-columns: 1fr; gap: 4px; margin-top: 58px; }
       .info-section { padding-bottom: 28px; }
+      .info-card { margin-bottom: 16px; padding: 17px 18px 19px; }
+      .steps-section ol { gap: 7px; }
       .faq-section {
         display: block;
         grid-column: auto;
@@ -762,7 +812,7 @@
         </div>
         <input class="visually-hidden" type="file" id="fileInput" accept="image/*" multiple>
         <label class="upload-trigger" for="fileInput" tabindex="0">写真・画像を選択</label>
-        <p class="privacy-note"><span aria-hidden="true">ⓘ</span><span>選択した画像は、コードの読み取り処理のためAIサービスへ送信されます。</span></p>
+        <p class="privacy-note"><span aria-hidden="true">ⓘ</span><span>選択した画像は、コードの読み取り処理のためAIサービスへ送信されます。<a href="/privacy.html">詳しく見る</a></span></p>
       </div>
 
       <div class="tool-action-row">
@@ -808,23 +858,45 @@
 
     <div class="content-sections">
       <section class="info-section" aria-labelledby="aboutTitle">
-        <h2 id="aboutTitle">このツールでできること</h2>
-        <p>画像に写ったシリアル番号やシリアルコードなどの英数字列を読み取り、編集・コピーできます。複数画像の処理結果はCSVにも保存できます。</p>
+        <h2 id="aboutTitle">写真からシリアルコードをまとめて読み取り</h2>
+        <p>スマホで撮影した画像から、シリアル番号や英数字コードを読み取れる無料ツールです。複数の写真をまとめて処理し、結果をワンタップでコピーしたり、CSVとして保存したりできます。読み取りミスに気付いたときは、その場で手動修正できます。</p>
       </section>
 
-      <section class="info-section" id="how-to" aria-labelledby="howToTitle">
+      <section class="info-section info-card" aria-labelledby="useCasesTitle">
+        <h2 id="useCasesTitle">こんなときに便利</h2>
+        <ul>
+          <li>CD・DVD・商品などに付属するシリアルコードを整理したいとき</li>
+          <li>複数のコードをまとめて入力・コピーしたいとき</li>
+          <li>スマホで撮影したコードをPCなどへ転記したいとき</li>
+          <li>手入力による入力ミスを減らしたいとき</li>
+        </ul>
+      </section>
+
+      <section class="info-section steps-section" id="how-to" aria-labelledby="howToTitle">
         <h2 id="howToTitle">使い方</h2>
         <ol>
-          <li>「画像を選択」から写真を1枚または複数選びます。</li>
-          <li>「読み取りを開始」を押して完了を待ちます。</li>
-          <li>結果を確認・修正し、コピーまたはCSV出力します。</li>
+          <li>「写真・画像を選択」から、コードが写った写真を選びます。</li>
+          <li>「読み取りを開始」を押します。</li>
+          <li>AIが画像内のシリアルコードを読み取るまで待ちます。</li>
+          <li>元画像と照らし合わせて結果を確認し、必要なら修正します。</li>
+          <li>個別または全件コピー、CSV出力を利用します。</li>
         </ol>
+      </section>
+
+      <section class="info-section info-card" aria-labelledby="photoTipsTitle">
+        <h2 id="photoTipsTitle">読み取り精度を上げる撮影のコツ</h2>
+        <ul>
+          <li>コード部分にピントを合わせ、なるべく大きく写してください。</li>
+          <li>文字にかかる影や光の反射を避けてください。</li>
+          <li>極端な斜め撮影を避け、文字を水平に近い状態で写してください。</li>
+          <li>読み取り後は、重要なコードを必ず元画像と照合してください。</li>
+        </ul>
       </section>
 
       <section class="info-section faq-section" id="faq" aria-labelledby="faqTitle">
         <h2 id="faqTitle">よくある質問</h2>
         <details>
-          <summary>料金はかかりますか？</summary>
+          <summary>無料で使えますか？</summary>
           <p>このツールは無料で利用できます。ユーザー登録やログインも不要です。</p>
         </details>
         <details>
@@ -832,12 +904,20 @@
           <p>はい。複数画像を選択すると、選択順を保ったまま最大3件ずつ並列で処理します。</p>
         </details>
         <details>
-          <summary>画像はどのように扱われますか？</summary>
-          <p>選択した画像はコードの読み取り処理のためAIサービスへ送信されます。画像の保存・削除やAI事業者側での取り扱いについて、このページでは保証していません。機密情報を含む画像の利用は避けてください。</p>
+          <summary>読み取り結果が間違っていた場合は？</summary>
+          <p>結果の入力欄を直接編集できます。修正した内容は、個別コピー・全件コピー・CSV出力にも反映されます。重要なコードは必ず元画像と照合してください。</p>
         </details>
         <details>
-          <summary>読み取りに失敗した場合はどうすればよいですか？</summary>
+          <summary>画像はどのように扱われますか？</summary>
+          <p>選択した画像はシリアルコードの読み取り処理のためCloudflare Workers AIへ送信されます。保存期間やAI基盤側での取り扱いを、このサイトが独自に保証するものではありません。機密情報を含む画像の利用は避けてください。</p>
+        </details>
+        <details>
+          <summary>読み取れない画像があります。</summary>
           <p>画像ごとの再読取、または「失敗した画像を再読取」で失敗分だけをまとめて処理できます。明るく、文字が大きく写った画像を使用すると読み取りやすくなります。</p>
+        </details>
+        <details>
+          <summary>スマートフォンでも使えますか？</summary>
+          <p>はい。iPhoneを含むスマートフォンのブラウザから写真を選択して利用できます。通信状況や端末の性能によって処理時間が変わる場合があります。</p>
         </details>
       </section>
     </div>
@@ -846,13 +926,71 @@
   <footer class="site-footer">
     <div class="site-footer-inner">
       <nav class="footer-nav" aria-label="フッターナビゲーション">
-        <a href="#how-to">使い方</a>
-        <a href="#faq">FAQ</a>
-        <!-- プライバシーポリシー・利用規約・お問い合わせは各ページ公開時に追加 -->
+        <a href="/">トップ</a>
+        <a href="/about.html">このサイトについて</a>
+        <a href="/privacy.html">プライバシーポリシー</a>
+        <a href="/terms.html">利用規約</a>
+        <a href="/contact.html">お問い合わせ</a>
       </nav>
       <span class="copyright">© シリアルコード読取ツール</span>
     </div>
   </footer>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "シリアルコードリーダー",
+        "url": "https://serial-reader-6nj.pages.dev/",
+        "description": "写真に写ったシリアル番号・英数字コードを読み取り、コピーやCSV出力ができる無料Webツールです。",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "JPY"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "無料で使えますか？",
+            "acceptedAnswer": { "@type": "Answer", "text": "このツールは無料で利用できます。ユーザー登録やログインも不要です。" }
+          },
+          {
+            "@type": "Question",
+            "name": "複数の画像をまとめて読み取れますか？",
+            "acceptedAnswer": { "@type": "Answer", "text": "はい。複数画像を選択すると、選択順を保ったまま最大3件ずつ並列で処理します。" }
+          },
+          {
+            "@type": "Question",
+            "name": "読み取り結果が間違っていた場合は？",
+            "acceptedAnswer": { "@type": "Answer", "text": "結果の入力欄を直接編集できます。修正した内容は、個別コピー・全件コピー・CSV出力にも反映されます。重要なコードは必ず元画像と照合してください。" }
+          },
+          {
+            "@type": "Question",
+            "name": "画像はどのように扱われますか？",
+            "acceptedAnswer": { "@type": "Answer", "text": "選択した画像はシリアルコードの読み取り処理のためCloudflare Workers AIへ送信されます。保存期間やAI基盤側での取り扱いを、このサイトが独自に保証するものではありません。機密情報を含む画像の利用は避けてください。" }
+          },
+          {
+            "@type": "Question",
+            "name": "読み取れない画像があります。",
+            "acceptedAnswer": { "@type": "Answer", "text": "画像ごとの再読取、または「失敗した画像を再読取」で失敗分だけをまとめて処理できます。明るく、文字が大きく写った画像を使用すると読み取りやすくなります。" }
+          },
+          {
+            "@type": "Question",
+            "name": "スマートフォンでも使えますか？",
+            "acceptedAnswer": { "@type": "Answer", "text": "はい。iPhoneを含むスマートフォンのブラウザから写真を選択して利用できます。通信状況や端末の性能によって処理時間が変わる場合があります。" }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <script>
     const MAX_CONCURRENT_REQUESTS = 3;
