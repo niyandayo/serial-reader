@@ -560,6 +560,18 @@
       background: rgba(255, 255, 255, 0.68);
     }
     .info-card ul { padding-left: 1.2em; }
+    .info-section .lookalike-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 20px;
+      margin: 0 0 9px;
+    }
+    .lookalike-list code {
+      color: var(--text);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.9em;
+      font-weight: 650;
+    }
     .steps-section ol {
       display: grid;
       padding: 0;
@@ -740,6 +752,7 @@
       .content-sections { grid-template-columns: 1fr; gap: 4px; margin-top: 58px; }
       .info-section { padding-bottom: 28px; }
       .info-card { margin-bottom: 16px; padding: 17px 18px 19px; }
+      .lookalike-list { column-gap: 12px; }
       .steps-section ol { gap: 7px; }
       .faq-section {
         display: block;
@@ -892,6 +905,18 @@
           <li>極端な斜め撮影を避け、文字を水平に近い状態で写してください。</li>
           <li>読み取り後は、重要なコードを必ず元画像と照合してください。</li>
         </ul>
+      </section>
+
+      <section class="info-section" aria-labelledby="resultCheckTitle">
+        <h2 id="resultCheckTitle">読み取り結果を確認するときのポイント</h2>
+        <p class="section-lead">AIによる画像文字認識（OCR）では、形の似た文字を読み違える場合があります。</p>
+        <ul class="lookalike-list">
+          <li><code>0</code>（ゼロ）と<code>O</code>（オー）</li>
+          <li><code>1</code>（イチ）と<code>I</code>（アイ）</li>
+          <li><code>5</code>（ゴ）と<code>S</code>（エス）</li>
+          <li><code>8</code>（ハチ）と<code>B</code>（ビー）</li>
+        </ul>
+        <p>コピーやCSV出力の前に、読み取り結果を元画像と照らし合わせてください。</p>
       </section>
 
       <section class="info-section faq-section" id="faq" aria-labelledby="faqTitle">
