@@ -552,6 +552,43 @@
     .info-section ol, .info-section ul { margin: 0; padding-left: 1.35em; }
     .info-section li + li { margin-top: 4px; }
     .info-section .section-lead { margin-bottom: 10px; }
+    .info-card {
+      padding: 20px 21px 22px;
+      border: 1px solid rgba(235, 215, 225, 0.78);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+    .info-card ul { padding-left: 1.2em; }
+    .steps-section ol {
+      display: grid;
+      padding: 0;
+      gap: 8px;
+      list-style: none;
+      counter-reset: tool-step;
+    }
+    .steps-section li {
+      position: relative;
+      min-height: 28px;
+      padding: 3px 0 3px 37px;
+      counter-increment: tool-step;
+    }
+    .steps-section li::before {
+      position: absolute;
+      top: 1px;
+      left: 0;
+      display: grid;
+      width: 27px;
+      height: 27px;
+      border: 1px solid #ead6e0;
+      border-radius: 50%;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      content: counter(tool-step);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
     .faq-section {
       display: grid;
       grid-column: 1 / -1;
@@ -701,6 +738,8 @@
       .btn-item { min-width: 62px; min-height: 44px; padding: 0 10px; }
       .content-sections { grid-template-columns: 1fr; gap: 4px; margin-top: 58px; }
       .info-section { padding-bottom: 28px; }
+      .info-card { margin-bottom: 16px; padding: 17px 18px 19px; }
+      .steps-section ol { gap: 7px; }
       .faq-section {
         display: block;
         grid-column: auto;
@@ -823,7 +862,7 @@
         <p>スマホで撮影した画像から、シリアル番号や英数字コードを読み取れる無料ツールです。複数の写真をまとめて処理し、結果をワンタップでコピーしたり、CSVとして保存したりできます。読み取りミスに気付いたときは、その場で手動修正できます。</p>
       </section>
 
-      <section class="info-section" aria-labelledby="useCasesTitle">
+      <section class="info-section info-card" aria-labelledby="useCasesTitle">
         <h2 id="useCasesTitle">こんなときに便利</h2>
         <ul>
           <li>CD・DVD・商品などに付属するシリアルコードを整理したいとき</li>
@@ -833,7 +872,7 @@
         </ul>
       </section>
 
-      <section class="info-section" id="how-to" aria-labelledby="howToTitle">
+      <section class="info-section steps-section" id="how-to" aria-labelledby="howToTitle">
         <h2 id="howToTitle">使い方</h2>
         <ol>
           <li>「写真・画像を選択」から、コードが写った写真を選びます。</li>
@@ -844,7 +883,7 @@
         </ol>
       </section>
 
-      <section class="info-section" aria-labelledby="photoTipsTitle">
+      <section class="info-section info-card" aria-labelledby="photoTipsTitle">
         <h2 id="photoTipsTitle">読み取り精度を上げる撮影のコツ</h2>
         <ul>
           <li>コード部分にピントを合わせ、なるべく大きく写してください。</li>
