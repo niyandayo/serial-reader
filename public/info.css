@@ -1,12 +1,12 @@
 :root {
-  --accent: #a3355f;
-  --accent-strong: #812544;
-  --accent-soft: #fbf0f4;
-  --bg: #f7f7f6;
+  --accent: #0f7a5a;
+  --accent-strong: #095f46;
+  --accent-soft: #edf6f2;
+  --bg: #fafaf8;
   --surface: #ffffff;
-  --text: #252529;
-  --muted: #626268;
-  --line: #e2e2e0;
+  --text: #171a1f;
+  --muted: #626970;
+  --line: #e3e3df;
 }
 
 * { box-sizing: border-box; }
@@ -79,8 +79,7 @@ h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.5rem); letter-spacing: -0.035em;
 }
 body { background: var(--bg); overflow-wrap: break-word; }
 .site-header { background: var(--surface); border-bottom-color: var(--line); }
-.site-brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 680; }
-.site-brand::before { width: 8px; height: 8px; border-radius: 3px; background: var(--accent); content: ""; }
+.site-brand { font-size: 0.8rem; font-weight: 580; letter-spacing: -0.01em; }
 h1 { font-size: clamp(1.55rem, 5vw, 2.1rem); }
 .notice { border-color: var(--line); }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
