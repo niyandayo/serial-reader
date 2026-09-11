@@ -20,24 +20,24 @@
   <title>シリアルコードを写真から読み取り・一括コピー｜シリアルコードリーダー</title>
   <style>
     :root {
-      --accent: #b76891;
-      --accent-strong: #7f4d69;
-      --accent-soft: #fff0f7;
-      --lavender: #8773a2;
+      --accent: #704666;
+      --accent-strong: #56364e;
+      --accent-soft: #f3edf2;
+      --lavender: #704666;
       --lavender-soft: #f5f0fa;
-      --bg: #fff9f7;
+      --bg: #f7f7f6;
       --surface: #ffffff;
-      --surface-subtle: #fbf5f8;
-      --text: #382a33;
-      --muted: #776871;
-      --muted-light: #9b8c95;
-      --line: #f0e2e8;
-      --line-strong: #e5d1db;
-      --success: #587a68;
+      --surface-subtle: #f4f4f3;
+      --text: #29292d;
+      --muted: #626269;
+      --muted-light: #6d6d74;
+      --line: #e5e5e7;
+      --line-strong: #d3d3d8;
+      --success: #37634b;
       --success-soft: #eff6f1;
-      --danger: #ad555e;
+      --danger: #a43e48;
       --danger-soft: #fcf0f1;
-      --warning: #92713b;
+      --warning: #79591f;
       --warning-soft: #fbf4e7;
       --shadow: 0 12px 34px rgba(117, 77, 99, 0.07);
       --radius-large: 20px;
@@ -303,7 +303,7 @@
       font-weight: 700;
       transition: background 150ms ease, transform 150ms ease;
     }
-    .btn-main:hover:not(:disabled) { background: #685b84; }
+    .btn-main:hover:not(:disabled) { background: #56364e; }
     .btn-main:active:not(:disabled) { transform: scale(0.99); }
     .btn-main:disabled {
       border-color: #e4e7e5;
@@ -320,7 +320,7 @@
     .progress-panel {
       margin-top: 2px;
       padding: 18px 22px 20px;
-      background: #fff2f8;
+      background: #f5f3f5;
     }
     .progress-copy {
       display: flex;
@@ -494,7 +494,7 @@
       padding: 8px 11px;
       border: 1px solid transparent;
       border-radius: var(--radius-small);
-      background: #fcf5f8;
+      background: #f5f5f6;
       color: var(--text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.94rem;
@@ -651,7 +651,7 @@
     .site-footer {
       padding: 26px 26px max(30px, env(safe-area-inset-bottom));
       border-top: 1px solid var(--line);
-      background: #faf8f6;
+      background: #f1f1f0;
     }
     .site-footer-inner {
       display: flex;
@@ -773,6 +773,47 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .progress-bar, .code-item, .upload-card, .upload-trigger, .btn-main { transition: none; }
+    }
+
+    /* Neutral surfaces keep the photo selection and extracted codes in focus. */
+    body { background: var(--bg); overflow-x: visible; overflow-wrap: break-word; }
+    .site-header { background: var(--surface); border-bottom-color: var(--line); }
+    .site-brand-mark { border: 0; background: var(--accent-soft); border-radius: 7px; }
+    .site-brand { font-weight: 650; }
+    .site-nav a, .footer-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+    .hero h1 { font-size: clamp(1.6rem, 3vw, 2.25rem); line-height: 1.35; font-weight: 650; }
+    .hero p { max-width: 660px; line-height: 1.65; }
+    .hero-context { color: var(--muted); font-weight: 500; }
+    .tool-panel { border-color: var(--line); border-radius: 14px; box-shadow: none; }
+    .tool-heading h2 { font-weight: 650; }
+    .upload-card { margin: 0; padding: 16px 22px; border: 0; border-radius: 0; background: transparent; }
+    .upload-card:focus-within { background: transparent; }
+    .upload-icon { border: 0; border-radius: 10px; background: var(--surface-subtle); }
+    .upload-trigger, .btn-main { border-radius: 10px; box-shadow: none; font-weight: 650; }
+    .tool-action-row { padding: 0 22px 20px; }
+    .btn-main:disabled { border: 1px dashed var(--line-strong); background: var(--surface-subtle); color: var(--muted); }
+    a:focus-visible, button:focus-visible, .upload-trigger:focus-visible,
+    .code-input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .upload-card:has(#fileInput:focus-visible) .upload-trigger { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .code-list { border-color: var(--line); border-radius: 12px; box-shadow: none; }
+    .content-sections { margin-top: 48px; }
+    .info-card { padding: 0 4px 24px; border: 0; border-radius: 0; background: transparent; }
+    .info-section h2 { font-weight: 650; }
+    .steps-section li::before { border: 0; }
+    .faq-section details { border-radius: 0; border-bottom: 1px solid var(--line); background: transparent; }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: clamp(1.25rem, 5.8vw, 1.55rem); line-height: 1.38; }
+      .hero p { font-size: 0.84rem; }
+      .tool-panel { border-radius: 12px; }
+      .upload-card { padding: 12px 16px; }
+      .tool-action-row { padding: 0 16px 16px; }
+      .code-input { font-size: 1rem; }
+      .content-sections { margin-top: 36px; }
+      .info-card { margin-bottom: 0; padding: 0 4px 28px; }
+      .info-section .lookalike-list { column-gap: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
