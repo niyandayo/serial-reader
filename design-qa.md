@@ -1,63 +1,56 @@
-# V4.3 Code Ledger Design QA
+# V4.3 Final Design QA
 
-- Source visual truth: generated concept `exec-91dd7f7c-0445-47ac-b26b-0b753e05635d.png` (local absolute path intentionally omitted from Git)
-- Browser-rendered implementation: Codex in-app browser capture of `http://127.0.0.1:8795/` and the 390 px iframe capture in the local viewport harness
+- Source visual truth: approved final-adjustment mock `exec-30c8f8c2-041d-41b0-97ba-ed66a47e3e49.png` (local absolute path intentionally omitted from Git)
+- Browser-rendered implementation: Codex in-app browser capture of the local app
 - Source pixels: 852 × 1844 px
-- Implementation CSS viewport: 390 × 900 px for the initial state; 390 px-wide result-state capture
-- Density normalization: source aspect ratio normalized to a 390 px CSS width; implementation rendered at 390 CSS px without horizontal scaling
-- States: no images selected; 12-image mock with success 10, failure 2, duplicate 2; individual retry; failed-only retry; edited result
+- Comparison viewport: source and implementation normalized to 390 × 844 CSS px
+- States checked: no image selected; 12-image mock with success/failure/duplicate states; editing; individual retry; failed-only retry
 
 ## Full-view comparison evidence
 
-The source and browser-rendered implementation were inspected together. Both use a compact header, a three-line title with one emerald phrase, and a ledger that begins immediately with column labels and a photo-add row. The implementation preserves the source's light neutral surface, precise rules, low-radius controls, dense information hierarchy, and absence of gradients, large illustrations, floating cards, and marketing decoration.
+The approved mock and the browser implementation were inspected side by side in one comparison view. Both use a quiet one-line header, a compact three-line title with only `シリアルコード` in deep emerald, a short supporting sentence, and one integrated command bar. The implementation preserves the mock's white/off-white surfaces, charcoal typography, precise 1 px rules, restrained radii, and lack of gradients, decorative imagery, glow, or heavy shadow.
 
-The implementation keeps one short supporting sentence between the title and ledger. This is an intentional product clarification that preserves the existing Japanese description without returning to the previous marketing-page hierarchy.
+The live implementation additionally retains the existing progress and four-value summary between the command bar and result rows. This is a deliberate functional requirement, styled as a compact continuation of the same product surface rather than as a separate card.
 
 ## Focused comparison evidence
 
-- Upload ledger: the 390 px capture shows the same order as the source—column labels, numbered photo-add row, supporting rows, and start action—with the photo row fully tappable.
-- Result ledger: the browser-rendered 12-image state keeps thumbnails, long filenames, editable codes, copy/retry actions, duplicate markers, and status labels aligned as compact rows.
-- Responsive layout: measured at 320, 390, 768, and 1280 CSS px. No horizontal overflow was detected.
+- Header: service name remains primary while `使い方` and `FAQ` use smaller, lower-contrast text.
+- Command bar: `写真を追加` → selected count → `読み取り開始` is one continuous control surface with subtle dividers and a light disabled state.
+- Results: codes render as text in the normal state; an input appears only after `編集`. Thumbnails, state, copy/retry, duplicate warning, and metadata remain compact rows separated by 1 px rules.
+- Supporting content: `使い方` is a compact three-step strip; the remaining sections use editorial spacing and dividers; FAQ remains a divider-based accordion.
+- Responsive layout: measured at 320, 390, 768, and 1280 CSS px. No horizontal overflow or one-character Japanese wrapping was detected.
 
 ## Required fidelity surfaces
 
-- Typography: OS system sans-serif; restrained 600–660 weights; compact title line-height; monospaced result codes; long filenames truncate without moving actions.
-- Spacing and layout: one continuous ledger replaces the former nested upload card. The 8 px rhythm, 1 px rules, 4–6 px radii, and compact row heights match the selected direction.
-- Colors and tokens: `#FAFAF8` background, `#171A1F` primary text, `#686E75` secondary text, and `#0F6B55` as the limited accent. Error, warning, success, and disabled states remain distinguishable.
-- Image quality and assets: no decorative imagery was required by the selected concept. Existing image thumbnails and the functional photo icon remain crisp and correctly cropped.
-- Copy and content: service purpose, file formats, privacy notice, progress, result actions, help content, and FAQ remain available. Repeated upload instructions were consolidated.
-- Interaction and accessibility: upload and start controls measure 80/46 px on mobile; focus-visible and reduced-motion rules remain; semantic labels, headings, alt text, and existing safe DOM rendering are preserved.
+- Typography: OS system sans-serif; compact H1; restrained weight hierarchy; monospaced serial-code values.
+- Layout: 8 px-based spacing rhythm, quiet header, integrated command bar, compact result rows, and divider-led supporting sections.
+- Colors: `#FAFAF8`/white surfaces, `#171A1F` primary text, neutral secondary text, and limited deep emerald accent. Warning/error colors appear only for state communication.
+- Assets: no new decorative images, external fonts, icon libraries, or UI frameworks.
+- Interaction: primary controls remain at least 44 px tall on mobile; focus-visible and reduced-motion rules are present.
+- Security and SEO: safe DOM rendering, current metadata, JSON-LD, Search Console verification, canonical/OGP URLs, robots, sitemap, and API implementation remain intact.
 
 ## Findings
 
-No actionable P0, P1, or P2 findings remain.
-
-## Comparison history
-
-- Earlier P1: the upload interaction remained a conventional card below marketing copy.
-  - Fix: rebuilt the first screen around a numbered ledger whose first row is the photo-selection control.
-  - Post-fix evidence: the 390 px capture presents photo selection as the primary product surface inside the first viewport.
-- Earlier P2: result rows and supporting content used different visual systems.
-  - Fix: applied the same rules, typography, status tokens, and compact row rhythm to upload, progress, results, and supporting information.
-  - Post-fix evidence: the 12-image browser state retains a consistent ledger structure across success, failure, duplicate, retry, and edited states.
+The initial browser comparison found two CSS inheritance issues: the mobile header navigation remained hidden by earlier CSS, and the start button inherited an old grid position. Both were corrected in the final override. The post-fix side-by-side capture matches the approved hierarchy and interaction order. No actionable P0, P1, or P2 findings remain.
 
 ## Primary interactions tested
 
-- 12-image mock processing: success 10, failure 2, duplicate 2
-- Individual retry: only the selected failed item was reprocessed
-- Failed-only batch retry: remaining failed item was reprocessed; successful items were retained
-- Manual edit and individual copy: edited value persisted and copy state changed to copied
-- Copy all: 12-item completion alert appeared
-- CSV export: action completed without a browser error
-- Browser console: zero application errors in the clean and mock runs
+- 12-image mock processing with success, failure, and duplicate states
+- Selection-order preservation and maximum-three parallel implementation retained
+- Manual edit changes text to an input only during editing and persists the corrected value
+- Individual failed-image retry reprocessed only its target
+- Failed-only batch retry left successful items intact
+- Individual copy, copy all, and CSV controls remained available
+- FAQ accordion remained keyboard/click operable
+- Browser console showed no application errors; expected mock failure diagnostics were warnings only
 
 ## Implementation checklist
 
-- [x] Code Ledger first-view structure
-- [x] Mobile-first 320/390 layout
-- [x] Tablet and desktop 768/1280 layout
+- [x] Approved 390 px final-adjustment design implemented
+- [x] 320/390/768/1280 responsive checks
 - [x] No horizontal overflow
-- [x] Existing IDs, functional JavaScript, SEO metadata, JSON-LD, and XSS-safe DOM policy preserved
+- [x] No Japanese one-character vertical wrapping
+- [x] Existing functional IDs and safe event handling preserved
 - [x] `functions/api.js`, `public/sitemap.xml`, and `public/robots.txt` unchanged
 
 final result: passed

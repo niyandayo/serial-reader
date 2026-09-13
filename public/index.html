@@ -1685,6 +1685,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/app-v43.css">
 </head>
 <body>
   <a class="skip-link" href="#tool">ツールへ移動</a>
@@ -1708,55 +1709,25 @@
   <main class="app-shell">
     <section class="hero" aria-labelledby="pageTitle">
       <h1 id="pageTitle"><span class="hero-title-line">写真から</span><span class="hero-title-line"><span class="hero-title-accent">シリアルコード</span>を</span><span class="hero-title-line">まとめて読み取り</span></h1>
-      <p>写真のコードを選んだ順に読み取り、まとめてコピーやCSVで保存できます。</p>
+      <p>写真を選ぶだけで、コードを順番どおりに読み取れます。</p>
     </section>
 
     <aside class="ad-slot ad-slot-top" hidden aria-label="広告"></aside>
 
     <section class="tool-panel" id="tool" aria-labelledby="toolTitle">
       <h2 class="visually-hidden" id="toolTitle">写真を選んでシリアルコードを読み取る</h2>
-      <div class="ledger-column-head" aria-hidden="true">
-        <span>画像</span>
-        <span>読み取り結果</span>
-        <span>操作</span>
-      </div>
-
       <div class="upload-card" id="uploadCard">
         <input class="visually-hidden" type="file" id="fileInput" accept="image/*" multiple>
-        <label class="upload-trigger" for="fileInput" tabindex="0">
-          <span class="ledger-row-number" aria-hidden="true">01</span>
-          <span class="upload-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-              <circle cx="8.5" cy="9" r="1.5"></circle>
-              <path d="m5 17 4.5-4.5 3 3 2-2L19 17"></path>
-            </svg>
-          </span>
-          <span class="upload-intro">
+        <div class="command-bar">
+          <label class="upload-trigger" for="fileInput" tabindex="0">
+            <span class="upload-plus" aria-hidden="true">＋</span>
             <span class="upload-lead">写真を追加</span>
-            <span id="fileCountDisplay" aria-live="polite">JPEG・PNG・WebP・複数選択可</span>
-          </span>
-          <span class="upload-action-label">選択</span>
-        </label>
+          </label>
+          <span id="fileCountDisplay" aria-live="polite">0枚選択</span>
+          <button class="btn-main" id="runBtn" type="button" disabled>読み取り開始</button>
+        </div>
+        <p class="action-hint">JPEG・PNG・WebP ／ 選択順のまま最大3件ずつ処理</p>
         <p class="privacy-note"><span aria-hidden="true">ⓘ</span><span>選択した画像は、コードの読み取り処理のためAIサービスへ送信されます。<a href="/privacy">詳しく見る</a></span></p>
-      </div>
-
-      <div class="ledger-empty-preview" aria-hidden="true">
-        <div class="ledger-preview-row">
-          <span>02</span>
-          <span>選択した画像が順番に並びます</span>
-          <span>—</span>
-        </div>
-        <div class="ledger-preview-row">
-          <span>03</span>
-          <span>読み取り結果を同じ順番で表示します</span>
-          <span>—</span>
-        </div>
-      </div>
-
-      <div class="tool-action-row">
-        <button class="btn-main" id="runBtn" type="button" disabled>読み取りを開始</button>
-        <p class="action-hint">選択順のまま、最大3件ずつ読み取ります。</p>
       </div>
 
       <div class="progress-panel" id="progressPanel" aria-live="polite" hidden>
@@ -1777,20 +1748,20 @@
     </section>
 
     <section class="result-section" id="resultSection" aria-labelledby="resultTitle" hidden>
+      <div class="code-list" id="codeList"></div>
       <div class="result-header">
         <div class="result-heading">
           <h2 class="result-title" id="resultTitle">読み取り結果</h2>
-          <p class="result-help">読み取り結果は入力欄で修正できます。</p>
+          <p class="result-help" id="resultHelp">0件中 0件成功</p>
         </div>
         <div class="result-actions">
           <button class="btn-secondary btn-retry-all" id="retryFailedBtn" type="button" hidden>失敗した画像を再読取</button>
           <div class="result-utility-actions">
-            <button class="btn-secondary" id="copyAllBtn" type="button" disabled>全件コピー</button>
-            <button class="btn-secondary" id="csvBtn" type="button" disabled>CSV出力</button>
+            <button class="btn-secondary btn-copy-all" id="copyAllBtn" type="button" disabled>すべてコピー</button>
+            <button class="btn-secondary" id="csvBtn" type="button" disabled>CSV</button>
           </div>
         </div>
       </div>
-      <div class="code-list" id="codeList"></div>
     </section>
 
     <aside class="ad-slot ad-slot-after-tool" hidden aria-label="広告"></aside>
@@ -1814,11 +1785,9 @@
       <section class="info-section steps-section" id="how-to" aria-labelledby="howToTitle">
         <h2 id="howToTitle">使い方</h2>
         <ol>
-          <li>「写真・画像を選択」から、コードが写った写真を選びます。</li>
-          <li>「読み取りを開始」を押します。</li>
-          <li>AIが画像内のシリアルコードを読み取るまで待ちます。</li>
-          <li>元画像と照らし合わせて結果を確認し、必要なら修正します。</li>
-          <li>個別または全件コピー、CSV出力を利用します。</li>
+          <li><strong>写真を選ぶ</strong><span>コードが写った画像を1枚または複数選びます。</span></li>
+          <li><strong>AIが読み取る</strong><span>「読み取り開始」を押し、結果が表示されるまで待ちます。</span></li>
+          <li><strong>確認してコピー</strong><span>元画像と照合して必要なら修正し、コピーやCSVを利用します。</span></li>
         </ol>
       </section>
 
@@ -1968,6 +1937,7 @@
     const progressText = document.getElementById('progressText');
     const status = document.getElementById('status');
     const resultSection = document.getElementById('resultSection');
+    const resultHelp = document.getElementById('resultHelp');
     const resultSummary = document.getElementById('resultSummary');
     const summaryTotal = document.getElementById('summaryTotal');
     const summarySuccess = document.getElementById('summarySuccess');
@@ -1991,10 +1961,11 @@
         status: 'queued',
         errorCode: '',
         duplicate: false,
-        copied: false
+        copied: false,
+        editing: false
       }));
 
-      fileCountDisplay.textContent = `${imageItems.length}枚の画像を選択しました`;
+      fileCountDisplay.textContent = `${imageItems.length}枚選択`;
       progressPanel.hidden = true;
       resultSection.hidden = true;
       codeList.replaceChildren();
@@ -2333,6 +2304,7 @@
       summarySuccess.textContent = String(successful);
       summaryFailed.textContent = String(failed);
       summaryDuplicate.textContent = String(duplicates);
+      resultHelp.textContent = `${imageItems.length}件中 ${successful}件成功`;
       retryFailedBtn.hidden = failed === 0;
       copyAllBtn.disabled = successful === 0;
       csvBtn.disabled = imageItems.length === 0;
@@ -2433,25 +2405,6 @@
         actions.className = 'item-actions';
 
         if (item.status === 'success') {
-          const label = document.createElement('label');
-          label.className = 'visually-hidden';
-          label.htmlFor = `code-${index}`;
-          label.textContent = `${index + 1}枚目の読み取り結果`;
-          const input = document.createElement('input');
-          input.className = 'code-input';
-          input.id = `code-${index}`;
-          input.type = 'text';
-          input.value = item.code;
-          input.maxLength = 128;
-          input.autocomplete = 'off';
-          input.spellcheck = false;
-          input.addEventListener('input', () => {
-            item.code = input.value;
-            item.copied = false;
-            card.classList.remove('copied');
-            syncEditedResult(index);
-          });
-
           const duplicateBadge = document.createElement('span');
           duplicateBadge.className = 'duplicate-badge';
           duplicateBadge.id = `duplicate-${index}`;
@@ -2459,8 +2412,60 @@
           duplicateBadge.hidden = !item.duplicate;
           const inputRow = document.createElement('div');
           inputRow.className = 'result-input-row';
-          inputRow.append(input, duplicateBadge);
-          resultCell.append(label, inputRow);
+
+          if (item.editing) {
+            const label = document.createElement('label');
+            label.className = 'visually-hidden';
+            label.htmlFor = `code-${index}`;
+            label.textContent = `${index + 1}枚目の読み取り結果を編集`;
+            const input = document.createElement('input');
+            input.className = 'code-input';
+            input.id = `code-${index}`;
+            input.type = 'text';
+            input.value = item.code;
+            input.maxLength = 128;
+            input.autocomplete = 'off';
+            input.spellcheck = false;
+            input.addEventListener('input', () => {
+              item.code = input.value;
+              item.copied = false;
+              card.classList.remove('copied');
+              syncEditedResult(index);
+            });
+            input.addEventListener('keydown', event => {
+              if (event.key === 'Enter') input.blur();
+            });
+            input.addEventListener('blur', () => {
+              requestAnimationFrame(() => {
+                item.editing = false;
+                renderList();
+                updateInteractionState();
+              });
+            }, { once: true });
+            inputRow.append(input, duplicateBadge);
+            resultCell.append(label, inputRow);
+            requestAnimationFrame(() => {
+              input.focus();
+              input.select();
+            });
+          } else {
+            const codeValue = document.createElement('span');
+            codeValue.className = 'code-value';
+            codeValue.id = `code-value-${index}`;
+            codeValue.textContent = item.code;
+            const editButton = document.createElement('button');
+            editButton.className = 'btn-edit';
+            editButton.type = 'button';
+            editButton.textContent = '編集';
+            editButton.setAttribute('aria-label', `${index + 1}枚目の読み取り結果を編集`);
+            editButton.addEventListener('click', () => {
+              item.editing = true;
+              renderList();
+              updateInteractionState();
+            });
+            inputRow.append(codeValue, editButton, duplicateBadge);
+            resultCell.appendChild(inputRow);
+          }
 
           const copyButton = document.createElement('button');
           copyButton.className = item.copied ? 'btn-item copied-btn' : 'btn-item';
@@ -2474,6 +2479,10 @@
           const message = document.createElement('p');
           message.className = 'item-message';
           if (item.status === 'error') {
+            const errorTitle = document.createElement('span');
+            errorTitle.className = 'item-error-title';
+            errorTitle.textContent = '読み取れません';
+            resultCell.appendChild(errorTitle);
             message.textContent = getFailureMessage(item.errorCode);
           } else if (item.status === 'processing') {
             message.textContent = '画像をAIへ送信して読み取っています。';
@@ -2523,6 +2532,7 @@
       item.status = needsImagePreparation ? 'preparing' : 'processing';
       item.errorCode = '';
       item.copied = false;
+      item.editing = false;
       renderList();
       updateProgress();
 
@@ -2571,6 +2581,7 @@
         item.errorCode = '';
         item.duplicate = false;
         item.copied = false;
+        item.editing = false;
       });
       progressPanel.hidden = false;
       resultSection.hidden = false;
