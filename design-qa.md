@@ -1,44 +1,41 @@
-# V4.3 Guided Upload Card Design QA
+# V4.3 Dark Upload Panel Design QA
 
-- Source visual truth: the approved dark hero capture `../v43-contrast-qa/mobile-390-initial.png`, combined with the upload-card reference `C:/Users/hyory/.codex/codex-remote-attachments/01a0769b-baf4-77e3-81d8-4cbec68f01de/8DF1BB6B-5A7C-4316-AAB6-8C4AEE40217B/1-写真1.jpg`
+- Source visual truth: the previously approved dark-hero/white-card capture `../v43-upload-card-qa/cloudflare-preview-390.png`, with the user's specified dark surface hierarchy (`#1C201E` hero, `#272C29` panel, `#303632` empty state, `#3A403C` border)
 - Browser-rendered implementation: `../v43-upload-card-qa/mobile-390-initial.png`
-- Focused comparison: `../v43-upload-card-qa/comparison-upload-focus.png`
-- Full-view comparison: `../v43-upload-card-qa/comparison-full.png`
-- Source pixels: 720 × 1280 px
+- Full-view and focused comparison: `../v43-upload-card-qa/comparison-dark-panel.png`
+- Source pixels: 390 × 844 px at a 390 × 844 CSS viewport and device scale factor 1
 - Implementation pixels: 390 × 844 px at a 390 × 844 CSS viewport and device scale factor 1
 - Additional implementation captures: 320 × 760 and 1280 × 900 CSS px
 - States checked: empty upload state; 12-image success/failure/duplicate result state; editing; individual retry; failed-only retry
 
 ## Full-view comparison evidence
 
-The reference and implementation were normalized into one side-by-side comparison image. The implementation combines the previously approved dark-charcoal hero and white H1 with the new white upload card, restrained green accent, and clear visual path from purpose to selection to processing. The implementation intentionally omits the upload reference's decorative photography and feature tiles because the user requested a focused update to the upload area without expanding the page or adding large assets.
+The normalized side-by-side comparison shows the same header, hero typography, upload-card structure, CTA order, and lower-section transition before and after the change. Only the visual surfaces inside the hero were changed. The white card is replaced by a slightly lighter charcoal control panel that remains distinct from the hero without appearing detached from it.
 
-The implementation preserves the approved compact H1, dark hero contrast, and editorial sections. The white upload card is now the primary first-view product surface, rather than a form row or command bar.
+The new hierarchy is visible without glow, gradient, glass treatment, or strong elevation: `#1C201E` hero → `#272C29` control panel → `#303632` empty state. The deep-emerald CTA remains the sole strong action color.
 
 ## Focused comparison evidence
 
-- Information order: purpose and supported formats → empty/selected state → primary selection CTA → secondary start action → AI-processing disclosure → multi-image benefit.
-- Card treatment: white surface, 1 px neutral border, 16–18 px radius, and a low-opacity natural shadow. No gradient, glow, glass effect, or nested card treatment is present.
-- Primary action: full-width green selection control with 54–56 px height, restrained iconography, and clear hover/pressed/focus states.
-- Empty state: a single quiet dashed region communicates selection state without competing with the CTA.
-- Typography: the card heading, explanatory text, action label, disclosure, and supporting note use distinct size, weight, and contrast levels.
-- Responsive fit: the card measures 294 px at 320 px, 358 px at 390 px, and is capped at 760 px on desktop. No horizontal overflow or one-character Japanese wrapping was detected.
+- Information order remains unchanged: purpose and supported formats → empty/selected state → primary selection CTA → secondary start action → AI-processing disclosure → multi-image explanation.
+- Panel treatment uses a 1 px `#3A403C` border and a low-opacity natural shadow. The panel remains clearly bounded while visually belonging to the hero.
+- Heading and body use `#F4F5F3` and `#AEB5B1`; the hierarchy is legible without reintroducing a white surface.
+- Empty state uses `#303632` and a restrained border; selected-count text has a transparent background and no light patch.
+- Disabled and busy controls use dark neutral surfaces and remain visibly secondary to the deep-emerald selection CTA.
+- At 390 px the panel is 358 px wide, the selection CTA is 318 × 54 px, and the start action is 318 × 50 px. At 320 px the panel is 294 px wide. No horizontal overflow or vertical Japanese wrapping was detected.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: unchanged OS-native Japanese sans-serif stack; the upload heading uses semibold weight while supporting copy remains regular; responsive phrase grouping avoids orphaned Japanese characters.
-- Spacing and layout rhythm: consistent 10–20 px internal gaps, aligned card edges, 44 px-plus tap targets, and a contained desktop width prevent either crowding or excessive stretching.
-- Colors and visual tokens: dark-charcoal `#202522` hero, white H1, muted-gray supporting copy, deep-emerald title accent, white upload card, and light neutral borders/disabled surfaces.
-- Image and icon quality: the compact image icon already used by the product is reused; no raster decoration, external font, icon library, or framework was added.
-- Copy and content: required supported formats, empty state, upload CTA, start CTA, AI disclosure, and maximum-three parallel-processing explanation are all present in Japanese.
+- Fonts and typography: unchanged OS-native Japanese sans-serif stack; heading, body, disclosure, and action labels retain their existing size and weight hierarchy.
+- Spacing and layout rhythm: upload structure, internal order, responsive padding, and 44 px-plus tap targets are unchanged.
+- Colors and visual tokens: hero `#1C201E`, panel `#272C29`, empty state `#303632`, border `#3A403C`, heading `#F4F5F3`, body `#AEB5B1`, and the existing deep-emerald CTA.
+- Image and icon quality: existing compact image icons are unchanged; no new assets, external fonts, libraries, or decorative imagery were introduced.
+- Copy and content: all required Japanese labels, supported formats, empty state, upload CTA, start CTA, AI disclosure, and maximum-three parallel-processing explanation remain unchanged.
 
 ## Findings and comparison history
 
-Initial browser review found two P2 polish issues at 390 px: the supported-format sentence could end with a one-character orphan, and the privacy link could split after its first character. The copy was grouped into natural inline phrases and the link was made non-breaking. The post-fix capture confirms balanced two-line supporting copy and an intact `詳しく見る` link.
+The first browser pass found one P2 color-integration issue: the selected-count element inherited a higher-specificity light background, producing a white patch inside the dark empty-state surface. A scoped override makes that element transparent and uses the panel's muted body color. The repeated 320/390/1280 captures confirm a uniform empty state.
 
-The next review found that the upload-card pass had unintentionally replaced the approved dark hero with a light canvas. The final CSS restores the exact dark-charcoal hero, white H1, emerald accent, muted supporting text, and dark progress treatment while retaining the white guided upload card unchanged. Post-fix 320/390/1280 captures confirm the intended dark/light contrast.
-
-No actionable P0, P1, or P2 findings remain.
+The post-fix side-by-side comparison confirms that the panel no longer floats as a large white surface, while the hero-to-panel contrast and CTA focus remain clear. No actionable P0, P1, or P2 findings remain.
 
 ## Primary interactions tested
 
@@ -58,6 +55,6 @@ No actionable P0, P1, or P2 findings remain.
 - [x] No Japanese one-character vertical wrapping
 - [x] Primary and secondary actions are at least 44 px tall
 - [x] Existing IDs and event wiring preserved
-- [x] `functions/api.js`, feature JavaScript, SEO metadata, sitemap, robots, and `public/info.css` unchanged
+- [x] `functions/api.js`, feature JavaScript, SEO metadata, sitemap, robots, and `public/info.css` unchanged in this pass
 
 final result: passed

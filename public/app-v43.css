@@ -1335,6 +1335,11 @@ summary:focus-visible {
   white-space: normal;
 }
 
+.hero-stage .upload-card--guided #fileCountDisplay {
+  background: transparent;
+  color: #aeb5b1;
+}
+
 .hero-stage .upload-card--guided .upload-trigger {
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) 20px;
@@ -1963,4 +1968,95 @@ summary:focus-visible {
   .hero-stage .hero p {
     color: #b8bfbb;
   }
+}
+
+/* V4.3 dark control panel: integrate the guided upload UI into the hero. */
+.hero-stage::before {
+  background: #1c201e;
+}
+
+.upload-card--guided {
+  border-color: #3a403c;
+  background: #272c29;
+  box-shadow: 0 10px 24px rgba(7, 10, 8, 0.14);
+}
+
+.upload-card--guided:focus-within {
+  border-color: #4b5f55;
+  background: #272c29;
+}
+
+.upload-icon {
+  background: #303632;
+  color: #62bd9c;
+}
+
+.upload-card--guided .upload-lead {
+  color: #f4f5f3;
+}
+
+.upload-description {
+  color: #aeb5b1;
+}
+
+.upload-empty-state {
+  border-color: #3a403c;
+  background: #303632;
+  color: #aeb5b1;
+}
+
+.upload-empty-icon {
+  color: #7fae9a;
+}
+
+.hero-stage .upload-card--guided .upload-trigger {
+  border-color: #247b60;
+  background: #167357;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.hero-stage .upload-card--guided .upload-trigger:hover {
+  border-color: #2c8a6c;
+  background: #1a7c5e;
+}
+
+.hero-stage .upload-card--guided .upload-trigger:active {
+  background: #12694f;
+}
+
+.hero-stage .upload-card--guided .btn-main:disabled {
+  border-color: #414844;
+  background: #333936;
+  color: #858e89;
+}
+
+.upload-card--guided .privacy-note {
+  color: #98a19c;
+}
+
+.upload-card--guided .privacy-note a,
+.hero-stage .upload-card--guided .privacy-note a {
+  color: #c7d0cb;
+}
+
+.upload-card--guided .privacy-note a:hover,
+.hero-stage .upload-card--guided .privacy-note a:hover {
+  color: #f4f5f3;
+}
+
+.upload-card--guided .action-hint,
+.hero-stage .upload-card--guided .action-hint {
+  border-top-color: #3a403c;
+  color: #aeb5b1;
+}
+
+.upload-card--guided.is-busy .upload-trigger {
+  border-color: #414844;
+  background: #333936;
+  color: #858e89;
+}
+
+.upload-card--guided.is-busy .upload-plus,
+.upload-card--guided.is-busy .upload-chevron {
+  color: #727b76;
 }
