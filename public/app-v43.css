@@ -2060,3 +2060,365 @@ summary:focus-visible {
 .upload-card--guided.is-busy .upload-chevron {
   color: #727b76;
 }
+
+/* V4.3 lower experience: continue the product's dark visual language below the hero. */
+.app-shell {
+  padding-bottom: 0;
+}
+
+.result-section,
+.content-sections .info-section {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.result-section::before,
+.content-sections .info-section::before {
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  content: "";
+}
+
+.result-section {
+  margin-top: 0;
+  padding-top: 31px;
+  background: transparent;
+}
+
+.result-section::before {
+  background: #202422;
+}
+
+.result-section .code-list,
+.result-section .code-item,
+.result-section .result-header {
+  border-color: #3a403c;
+}
+
+.result-section .code-value,
+.result-section .item-error-title,
+.result-section .result-help {
+  color: #f1f3f1;
+}
+
+.result-section .code-num,
+.result-section .file-name,
+.result-section .item-message,
+.result-section .btn-edit {
+  color: #9ea7a2;
+}
+
+.result-section .btn-edit:hover {
+  color: #dce1de;
+}
+
+.result-section .thumbnail {
+  border-color: #414844;
+  background: #2b302d;
+}
+
+.result-section .code-input {
+  border-color: #3b9778;
+  background: #292e2b;
+  color: #f4f5f3;
+}
+
+.result-section .btn-secondary,
+.result-section .btn-item {
+  border-color: #454d48;
+  background: #292e2b;
+  color: #e1e5e2;
+}
+
+.result-section .btn-secondary:hover:not(:disabled),
+.result-section .btn-item:hover:not(:disabled) {
+  border-color: #607069;
+  background: #313733;
+  color: #ffffff;
+}
+
+.result-section .btn-secondary:active:not(:disabled),
+.result-section .btn-item:active:not(:disabled) {
+  background: #252a27;
+}
+
+.result-section .btn-secondary:disabled,
+.result-section .btn-item:disabled {
+  border-color: #363c38;
+  background: #292e2b;
+  color: #747d78;
+}
+
+.result-section .btn-copy-all {
+  border-color: #247b60;
+  background: #167357;
+  color: #ffffff;
+}
+
+.result-section .btn-copy-all:hover:not(:disabled) {
+  border-color: #2c8a6c;
+  background: #1a7c5e;
+}
+
+.result-section .btn-retry-all {
+  border-color: #755155;
+  color: #e0a5aa;
+}
+
+.result-section .status-success {
+  color: #7dc5a8;
+}
+
+.result-section .status-error {
+  color: #e5a1a7;
+}
+
+.result-section .status-processing,
+.result-section .status-preparing {
+  color: #76bfa2;
+}
+
+.result-section .duplicate-badge,
+.result-section .summary-duplicate strong {
+  color: #c8a66a;
+}
+
+.result-section .code-item.copied {
+  background: rgba(31, 128, 94, 0.12);
+}
+
+.content-sections {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.content-sections .info-section,
+.content-sections .info-card {
+  grid-column: 1;
+  padding: 38px 0 41px;
+  border: 0;
+  border-bottom: 1px solid #353b37;
+  background: transparent;
+}
+
+.content-sections .steps-section::before {
+  background: #222624;
+}
+
+.content-sections .info-section[aria-labelledby="photoTipsTitle"]::before {
+  background: #1f2321;
+}
+
+.content-sections .info-section[aria-labelledby="useCasesTitle"]::before {
+  background: #242826;
+}
+
+.content-sections .info-section[aria-labelledby="aboutTitle"]::before {
+  background: #202422;
+}
+
+.content-sections .info-section[aria-labelledby="resultCheckTitle"]::before {
+  background: #222725;
+}
+
+.content-sections .faq-section::before {
+  background: #1c201e;
+}
+
+.content-sections .info-section:not(.faq-section) h2,
+.content-sections .faq-section h2 {
+  margin-bottom: 17px;
+  color: #f1f3f1;
+  font-weight: 620;
+  letter-spacing: -0.018em;
+}
+
+.content-sections .info-section p,
+.content-sections .info-section li {
+  color: #aeb5b1;
+}
+
+.content-sections .steps-section ol {
+  border-top: 1px solid #3a403c;
+}
+
+.content-sections .steps-section li,
+.content-sections .steps-section li:first-child,
+.content-sections .steps-section li:last-child {
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 3px 12px;
+  padding: 14px 0;
+  border-top: 0;
+  border-bottom: 1px solid #3a403c;
+  border-left: 0;
+}
+
+.content-sections .steps-section li::before {
+  border-radius: 0;
+  background: transparent;
+  color: #62bd9c;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.content-sections .steps-section li strong,
+.content-sections .editorial-list strong {
+  color: #eef1ef;
+  font-weight: 580;
+}
+
+.content-sections .steps-section li span,
+.content-sections .editorial-list span {
+  color: #9fa8a3;
+}
+
+.editorial-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 !important;
+  padding: 0 !important;
+  border-top: 1px solid #3a403c;
+  list-style: none;
+}
+
+.content-sections .editorial-list li,
+.content-sections .editorial-list li + li {
+  display: grid;
+  grid-template-columns: minmax(112px, 0.38fr) minmax(0, 1fr);
+  gap: 10px 18px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid #3a403c;
+}
+
+.content-sections .editorial-list li:nth-child(odd) {
+  padding-right: 24px;
+}
+
+.content-sections .editorial-list li:nth-child(even) {
+  padding-left: 24px;
+}
+
+.content-sections .editorial-list strong,
+.content-sections .editorial-list span {
+  display: block;
+  min-width: 0;
+  font-size: 0.79rem;
+  line-height: 1.65;
+}
+
+.content-sections .lookalike-list {
+  border-top: 1px solid #3a403c;
+  border-bottom: 1px solid #3a403c;
+  padding: 11px 0 !important;
+}
+
+.content-sections .lookalike-list code {
+  color: #75c1a3;
+}
+
+.content-sections .faq-section {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 0 40px;
+  padding-top: 39px;
+  padding-bottom: 43px;
+  border-bottom: 0;
+}
+
+.content-sections .faq-section details,
+.content-sections .faq-section details:last-child {
+  border-color: #3a403c;
+  background: transparent;
+}
+
+.content-sections .faq-section summary {
+  color: #e8ebe9;
+  font-weight: 540;
+}
+
+.content-sections .faq-section summary::after {
+  color: #62bd9c;
+}
+
+.content-sections .faq-section details p {
+  color: #9fa8a3;
+}
+
+.site-footer {
+  border-top-color: #303632;
+  background: #181b19;
+}
+
+.site-footer .footer-nav a,
+.site-footer .copyright {
+  color: #8f9893;
+}
+
+.site-footer .footer-nav a:hover {
+  color: #dfe4e1;
+}
+
+@media (max-width: 760px) {
+  .result-section {
+    padding-top: 24px;
+  }
+
+  .content-sections .info-section,
+  .content-sections .info-card {
+    padding: 29px 0 31px;
+  }
+
+  .content-sections .steps-section {
+    padding-top: 27px;
+    padding-bottom: 29px;
+  }
+
+  .content-sections .steps-section ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorial-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .content-sections .editorial-list li,
+  .content-sections .editorial-list li + li,
+  .content-sections .editorial-list li:nth-child(odd),
+  .content-sections .editorial-list li:nth-child(even) {
+    grid-template-columns: minmax(104px, 0.42fr) minmax(0, 1fr);
+    gap: 8px 13px;
+    padding: 12px 0;
+  }
+
+  .content-sections .editorial-list strong,
+  .content-sections .editorial-list span {
+    font-size: 0.75rem;
+    line-height: 1.62;
+  }
+
+  .content-sections .faq-section {
+    display: block;
+    padding-top: 30px;
+    padding-bottom: 34px;
+  }
+}
+
+@media (max-width: 360px) {
+  .content-sections .editorial-list li,
+  .content-sections .editorial-list li + li,
+  .content-sections .editorial-list li:nth-child(odd),
+  .content-sections .editorial-list li:nth-child(even) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}

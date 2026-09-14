@@ -58,3 +58,38 @@ The post-fix side-by-side comparison confirms that the panel no longer floats as
 - [x] `functions/api.js`, feature JavaScript, SEO metadata, sitemap, robots, and `public/info.css` unchanged in this pass
 
 final result: passed
+
+# V4.3 Dark Lower Experience Design QA
+
+- Source visual truth: the approved 390 × 844 dark hero and dark upload-panel capture `../v43-upload-card-qa/cloudflare-preview-390.png`, plus the user's specified lower-surface hierarchy and editorial list requirements
+- Browser-rendered implementation: `../v43-lower-dark-qa/mobile-390-full.png`
+- Same-viewport comparison: `../v43-lower-dark-qa/comparison-390.png`
+- Result-state capture: `../v43-lower-dark-qa/mobile-390-results-full.png`
+- Desktop captures: `../v43-lower-dark-qa/desktop-1280-full.png` and `../v43-lower-dark-qa/desktop-1280-results-full.png`
+- Viewports checked: 390 × 844 and 1280 × 900 CSS px at device scale factor 1; the established 320 px regression suite was also rerun
+
+## Full-view comparison evidence
+
+The comparison confirms that the accepted white header, `#1C201E` hero, heading typography, deep-emerald CTA, and `#272C29` upload panel remain unchanged. The former abrupt white transition below the hero is replaced by restrained charcoal section surfaces. How-to, tips, use cases, supporting information, FAQ, result rows, and footer now belong to one visual system without using large cards, glow, gradient, or heavy shadow.
+
+## Focused review
+
+- How-to retains three compact vertical rows at 390 px. Numbers are plain deep-emerald text on dark surfaces; the inherited pale number boxes were removed.
+- Photo tips and use cases retain their original meaning while presenting a short heading and supporting sentence in divider-led editorial rows.
+- Compact result rows use the same spacing and behavior as before, with dark surfaces, low-contrast dividers, off-white code text, muted metadata, restrained success/error/duplicate colors, and editing-only inputs.
+- FAQ remains an accessible native `details` accordion and uses 1 px dividers rather than white cards.
+- Section surface rhythm is `#222624`, `#1F2321`, `#242826`, related charcoal supporting sections, `#1C201E` FAQ, and `#181B19` footer.
+- The first browser pass exposed two P2 integration issues: inherited pale number backgrounds and a light gap before the footer. Both were corrected and the full suite was rerun.
+
+## Verification
+
+- [x] Approved hero and upload-panel computed colors unchanged
+- [x] 390 px and 1280 px full-page visual review
+- [x] 320/390/1280 responsive interaction regression
+- [x] No horizontal overflow or vertical Japanese wrapping
+- [x] 12-image success/failure/duplicate result state
+- [x] Manual edit, individual retry, failed-only retry, individual copy, copy all, and CSV
+- [x] Browser console free of application errors
+- [x] Existing IDs, event wiring, feature JavaScript, SEO metadata, sitemap, robots, and `functions/api.js` preserved
+
+final result: passed
