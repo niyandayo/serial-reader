@@ -93,3 +93,41 @@ The comparison confirms that the accepted white header, `#1C201E` hero, heading 
 - [x] Existing IDs, event wiring, feature JavaScript, SEO metadata, sitemap, robots, and `functions/api.js` preserved
 
 final result: passed
+
+# V4.3 Favicon and Row Copy Design QA
+
+- Source visual truth: the released V4.3 result-state capture `../v43-lower-dark-qa/mobile-390-results-full.png` and the existing dark-charcoal/deep-emerald design tokens
+- Browser-rendered implementation: `../v43-copy-favicon-qa/results-390.png`
+- Focused copied-state evidence: `../v43-copy-favicon-qa/copy-feedback-390.png`
+- Desktop evidence: `../v43-copy-favicon-qa/results-1280.png`
+- Viewports checked: 320 × 760, 390 × 844, 768 × 900, and 1280 × 900 CSS px at device scale factor 1
+- Favicon asset evidence: `../v43-copy-favicon-qa/favicon-preview.png`
+
+## Full-view comparison evidence
+
+The implementation retains the released V4.3 header, hero, dark upload panel, Compact Rows, editorial sections, FAQ, and footer. The only visible result-list change is the per-row copy action: it now uses a restrained muted-emerald surface and off-white label, making it easier to find than the low-emphasis edit action without competing with the main upload CTA.
+
+## Focused comparison evidence
+
+- The copy control remains in the existing right-edge action column and keeps the Compact Rows information hierarchy.
+- Its 76 × 44 px minimum target is consistent at every checked viewport and does not overlap the code or edit control.
+- Hover, active, focus-visible, disabled, and copied states use the existing deep-emerald family without gradient, glow, or strong shadow.
+- After copying, the in-row label changes to `コピー済み`, exposes an updated accessible label, and quietly returns to `コピー` after 1.8 seconds.
+- A long serial-code regression pass produced no horizontal overflow and did not shrink or displace the copy action.
+- The favicon uses a charcoal square, four emerald focus corners, and a light center target. It remains legible when rasterized to the 32 px icon embedded in `/favicon.ico`.
+
+## Verification
+
+- [x] 320/390/768/1280 responsive browser checks
+- [x] No horizontal overflow or vertical Japanese wrapping
+- [x] Per-row copy targets remain at least 44 px high
+- [x] Copy, copied feedback, copy all, and CSV export
+- [x] Manual edit with long-code layout regression
+- [x] Individual failed-image retry and failed-only batch retry
+- [x] 12-image success/failure/duplicate mock state
+- [x] XSS regression with markup-like edited content
+- [x] Browser console free of application errors
+- [x] `/favicon.ico` returns HTTP 200 with an ICO header in the local production-like server
+- [x] Existing IDs, event wiring, AI code, SEO metadata, Search Console verification, sitemap, robots, and `functions/api.js` preserved
+
+final result: passed

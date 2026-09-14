@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="シリアルコードリーダー">
+  <rect width="64" height="64" rx="14" fill="#1c201e"/>
+  <path d="M14 26V18a4 4 0 0 1 4-4h8M38 14h8a4 4 0 0 1 4 4v8M50 38v8a4 4 0 0 1-4 4h-8M26 50h-8a4 4 0 0 1-4-4v-8" fill="none" stroke="#39a985" stroke-width="5" stroke-linecap="round"/>
+  <rect x="26" y="26" width="12" height="12" rx="3" fill="#e9f3ef"/>
+</svg>
