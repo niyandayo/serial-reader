@@ -1904,63 +1904,63 @@ summary:focus-visible {
   }
 }
 
-/* Keep the guided upload card on a soft, light first-view canvas. */
+/* Keep the guided white card inside the approved dark product stage. */
 .hero-stage {
-  padding: 36px 0 38px;
+  padding: 42px 0 34px;
 }
 
 .hero-stage::before {
-  background: #f5f7f3;
+  background: #202522;
 }
 
 .hero-stage .hero {
-  margin-bottom: 24px;
+  margin-bottom: 25px;
 }
 
 .hero-stage .hero h1 {
-  color: #1c211e;
+  color: #f7f8f7;
 }
 
 .hero-stage .hero-title-accent {
-  color: #167357;
+  color: #62bd9c;
 }
 
 .hero-stage .hero p {
-  color: #626a65;
+  color: #b8bfbb;
 }
 
 .hero-stage .progress-panel {
-  border-top-color: #dbe1dc;
+  border-top-color: #3b423e;
 }
 
 .hero-stage .progress-copy,
 .hero-stage .summary-bar strong {
-  color: #25302a;
+  color: #f2f4f2;
 }
 
 .hero-stage .summary-bar,
 .hero-stage #progressText {
-  color: #657069;
+  color: #aeb6b1;
 }
 
 .hero-stage .progress-track {
-  background: #dce3df;
+  background: #3a413d;
 }
 
 .hero-stage .progress-bar {
-  background: #29866a;
+  background: #62bd9c;
 }
 
 @media (max-width: 760px) {
   .hero-stage {
-    padding: 24px 0 28px;
+    padding: 25px 0 27px;
   }
 
   .hero-stage .hero {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
 
   .hero-stage .hero p {
-    color: #626a65;
+    color: #b8bfbb;
   }
 }

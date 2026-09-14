@@ -1,6 +1,6 @@
 # V4.3 Guided Upload Card Design QA
 
-- Source visual truth: `C:/Users/hyory/.codex/codex-remote-attachments/01a0769b-baf4-77e3-81d8-4cbec68f01de/8DF1BB6B-5A7C-4316-AAB6-8C4AEE40217B/1-写真1.jpg`
+- Source visual truth: the approved dark hero capture `../v43-contrast-qa/mobile-390-initial.png`, combined with the upload-card reference `C:/Users/hyory/.codex/codex-remote-attachments/01a0769b-baf4-77e3-81d8-4cbec68f01de/8DF1BB6B-5A7C-4316-AAB6-8C4AEE40217B/1-写真1.jpg`
 - Browser-rendered implementation: `../v43-upload-card-qa/mobile-390-initial.png`
 - Focused comparison: `../v43-upload-card-qa/comparison-upload-focus.png`
 - Full-view comparison: `../v43-upload-card-qa/comparison-full.png`
@@ -11,9 +11,9 @@
 
 ## Full-view comparison evidence
 
-The reference and implementation were normalized into one side-by-side comparison image. Both use a light, low-saturation canvas; a white upload card; a restrained green accent; and a clear visual path from purpose to selection to processing. The implementation intentionally omits the reference's decorative photography and feature tiles because the user requested a focused update to the upload area without expanding the page or adding large assets.
+The reference and implementation were normalized into one side-by-side comparison image. The implementation combines the previously approved dark-charcoal hero and white H1 with the new white upload card, restrained green accent, and clear visual path from purpose to selection to processing. The implementation intentionally omits the upload reference's decorative photography and feature tiles because the user requested a focused update to the upload area without expanding the page or adding large assets.
 
-The implementation preserves the existing compact H1 and editorial sections. The upload card is now the primary first-view product surface, rather than a form row or command bar.
+The implementation preserves the approved compact H1, dark hero contrast, and editorial sections. The white upload card is now the primary first-view product surface, rather than a form row or command bar.
 
 ## Focused comparison evidence
 
@@ -28,13 +28,15 @@ The implementation preserves the existing compact H1 and editorial sections. The
 
 - Fonts and typography: unchanged OS-native Japanese sans-serif stack; the upload heading uses semibold weight while supporting copy remains regular; responsive phrase grouping avoids orphaned Japanese characters.
 - Spacing and layout rhythm: consistent 10–20 px internal gaps, aligned card edges, 44 px-plus tap targets, and a contained desktop width prevent either crowding or excessive stretching.
-- Colors and visual tokens: off-white `#F5F7F3` first-view canvas, white card, charcoal text, limited deep green `#167357`, and light neutral borders/disabled surfaces.
+- Colors and visual tokens: dark-charcoal `#202522` hero, white H1, muted-gray supporting copy, deep-emerald title accent, white upload card, and light neutral borders/disabled surfaces.
 - Image and icon quality: the compact image icon already used by the product is reused; no raster decoration, external font, icon library, or framework was added.
 - Copy and content: required supported formats, empty state, upload CTA, start CTA, AI disclosure, and maximum-three parallel-processing explanation are all present in Japanese.
 
 ## Findings and comparison history
 
 Initial browser review found two P2 polish issues at 390 px: the supported-format sentence could end with a one-character orphan, and the privacy link could split after its first character. The copy was grouped into natural inline phrases and the link was made non-breaking. The post-fix capture confirms balanced two-line supporting copy and an intact `詳しく見る` link.
+
+The next review found that the upload-card pass had unintentionally replaced the approved dark hero with a light canvas. The final CSS restores the exact dark-charcoal hero, white H1, emerald accent, muted supporting text, and dark progress treatment while retaining the white guided upload card unchanged. Post-fix 320/390/1280 captures confirm the intended dark/light contrast.
 
 No actionable P0, P1, or P2 findings remain.
 
