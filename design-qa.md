@@ -1,59 +1,61 @@
-# V4.3 Contrast Pass Design QA
+# V4.3 Guided Upload Card Design QA
 
-- Source visual truth: approved final-adjustment mock `exec-30c8f8c2-041d-41b0-97ba-ed66a47e3e49.png` (local absolute path intentionally omitted from Git)
-- Browser-rendered implementation: installed Chrome in headless mode against the local app
-- Source pixels: 852 × 1844 px
-- Comparison viewport: source and implementation normalized to 390 × 844 CSS px
-- States checked: no image selected; 12-image mock with success/failure/duplicate states; editing; individual retry; failed-only retry
-- Evidence: `work/v43-contrast-qa/mobile-390-initial.png`, `desktop-1280-initial.png`, `mobile-390-results.png`, and `desktop-1280-results.png` (kept outside the repository)
+- Source visual truth: `C:/Users/hyory/.codex/codex-remote-attachments/01a0769b-baf4-77e3-81d8-4cbec68f01de/8DF1BB6B-5A7C-4316-AAB6-8C4AEE40217B/1-写真1.jpg`
+- Browser-rendered implementation: `../v43-upload-card-qa/mobile-390-initial.png`
+- Focused comparison: `../v43-upload-card-qa/comparison-upload-focus.png`
+- Full-view comparison: `../v43-upload-card-qa/comparison-full.png`
+- Source pixels: 720 × 1280 px
+- Implementation pixels: 390 × 844 px at a 390 × 844 CSS viewport and device scale factor 1
+- Additional implementation captures: 320 × 760 and 1280 × 900 CSS px
+- States checked: empty upload state; 12-image success/failure/duplicate result state; editing; individual retry; failed-only retry
 
 ## Full-view comparison evidence
 
-The approved mock, the previous Preview, and the browser implementation were inspected together. The quiet one-line header remains white. A single dark-charcoal product stage now contains the compact three-line title and the integrated white command bar, while the results and supporting content return to restrained light surfaces. The implementation preserves the approved typography, precise 1 px rules, restrained radii, and lack of gradients, decorative imagery, glow, or heavy shadow.
+The reference and implementation were normalized into one side-by-side comparison image. Both use a light, low-saturation canvas; a white upload card; a restrained green accent; and a clear visual path from purpose to selection to processing. The implementation intentionally omits the reference's decorative photography and feature tiles because the user requested a focused update to the upload area without expanding the page or adding large assets.
 
-The live implementation additionally retains the existing progress and four-value summary between the command bar and result rows. This is a deliberate functional requirement, styled as a compact continuation of the same product surface rather than as a separate card.
+The implementation preserves the existing compact H1 and editorial sections. The upload card is now the primary first-view product surface, rather than a form row or command bar.
 
 ## Focused comparison evidence
 
-- Header: service name remains primary while `使い方` and `FAQ` use smaller, lower-contrast text on a white surface.
-- Hero: dark charcoal provides one deliberate contrast field; the H1 is white with only `シリアルコード` in deep emerald.
-- Command bar: the white `写真を追加` → selected count → `読み取り開始` surface remains one continuous control with subtle dividers and a natural disabled state.
-- Results: codes render as text in the normal state; an input appears only after `編集`. Thumbnails, state, copy/retry, duplicate warning, and metadata remain compact rows separated by 1 px rules.
-- Supporting content: `使い方` is a compact three-row mobile sequence and a three-column desktop strip; alternating white and `#F7F7F5` editorial sections provide rhythm without cards. FAQ remains a divider-based accordion.
-- Responsive layout: directly measured at 390 and 1280 CSS px, with the existing 320/768 responsive rules retained. No horizontal overflow or one-character Japanese wrapping was detected.
+- Information order: purpose and supported formats → empty/selected state → primary selection CTA → secondary start action → AI-processing disclosure → multi-image benefit.
+- Card treatment: white surface, 1 px neutral border, 16–18 px radius, and a low-opacity natural shadow. No gradient, glow, glass effect, or nested card treatment is present.
+- Primary action: full-width green selection control with 54–56 px height, restrained iconography, and clear hover/pressed/focus states.
+- Empty state: a single quiet dashed region communicates selection state without competing with the CTA.
+- Typography: the card heading, explanatory text, action label, disclosure, and supporting note use distinct size, weight, and contrast levels.
+- Responsive fit: the card measures 294 px at 320 px, 358 px at 390 px, and is capped at 760 px on desktop. No horizontal overflow or one-character Japanese wrapping was detected.
 
 ## Required fidelity surfaces
 
-- Typography: OS system sans-serif; compact H1; restrained weight hierarchy; monospaced serial-code values.
-- Layout: 8 px-based spacing rhythm, quiet header, one focused product stage, integrated command bar, compact result rows, and divider-led supporting sections.
-- Colors: white and `#F7F7F5` light surfaces, `#202522` hero stage, white/charcoal typography, and limited deep emerald accent. Warning/error colors appear only for state communication.
-- Assets: no new decorative images, external fonts, icon libraries, or UI frameworks.
-- Interaction: primary controls remain at least 44 px tall on mobile; focus-visible and reduced-motion rules are present.
-- Security and SEO: safe DOM rendering, current metadata, JSON-LD, Search Console verification, canonical/OGP URLs, robots, sitemap, and API implementation remain intact.
+- Fonts and typography: unchanged OS-native Japanese sans-serif stack; the upload heading uses semibold weight while supporting copy remains regular; responsive phrase grouping avoids orphaned Japanese characters.
+- Spacing and layout rhythm: consistent 10–20 px internal gaps, aligned card edges, 44 px-plus tap targets, and a contained desktop width prevent either crowding or excessive stretching.
+- Colors and visual tokens: off-white `#F5F7F3` first-view canvas, white card, charcoal text, limited deep green `#167357`, and light neutral borders/disabled surfaces.
+- Image and icon quality: the compact image icon already used by the product is reused; no raster decoration, external font, icon library, or framework was added.
+- Copy and content: required supported formats, empty state, upload CTA, start CTA, AI disclosure, and maximum-three parallel-processing explanation are all present in Japanese.
 
-## Findings
+## Findings and comparison history
 
-The contrast pass introduced no layout or interaction regressions. Chrome measurements confirmed a 350 px-wide horizontal H1 at 390 px, a 60 px-high command surface ordered as upload/count/run, vertically stacked mobile steps, and 358 px-wide result rows within the viewport. Expected mock 422 responses were distinguished from application console errors. No actionable P0, P1, or P2 findings remain.
+Initial browser review found two P2 polish issues at 390 px: the supported-format sentence could end with a one-character orphan, and the privacy link could split after its first character. The copy was grouped into natural inline phrases and the link was made non-breaking. The post-fix capture confirms balanced two-line supporting copy and an intact `詳しく見る` link.
+
+No actionable P0, P1, or P2 findings remain.
 
 ## Primary interactions tested
 
-- 12-image mock processing with success, failure, and duplicate states
-- Selection-order preservation and maximum-three parallel implementation retained
-- Manual edit changes text to an input only during editing and persists the corrected value
-- Individual failed-image retry reprocessed only its target
-- Failed-only batch retry left successful items intact
-- Individual copy, copy all, and CSV controls remained available
-- FAQ accordion remained keyboard/click operable
-- Browser console showed no application errors; expected mock HTTP failures were limited to the mocked `/api` responses
+- Empty and 12-image selected states
+- 12-image mock processing with success 10, failure 2, and duplicate 2
+- Selection count update and selection-order preservation
+- Manual edit with text-only normal display
+- Individual failed-image retry and failed-only batch retry
+- Individual copy, copy all, and CSV export
+- XSS regression with markup-like edited content
+- Browser console checked with no application errors
 
 ## Implementation checklist
 
-- [x] Approved contrast direction implemented without a new design concept
-- [x] 390/1280 Chrome screenshot and layout checks
-- [x] Existing 320/768 responsive protections retained
+- [x] 320/390/1280 responsive browser checks
 - [x] No horizontal overflow
 - [x] No Japanese one-character vertical wrapping
-- [x] Existing functional IDs and safe event handling preserved
-- [x] `functions/api.js`, `public/sitemap.xml`, and `public/robots.txt` unchanged
+- [x] Primary and secondary actions are at least 44 px tall
+- [x] Existing IDs and event wiring preserved
+- [x] `functions/api.js`, feature JavaScript, SEO metadata, sitemap, robots, and `public/info.css` unchanged
 
 final result: passed
