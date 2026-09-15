@@ -2168,21 +2168,21 @@ summary:focus-visible {
 .result-section .btn-copy-item {
   min-width: 76px;
   min-height: 44px;
-  border-color: #347d65;
-  background: #1d5d4b;
+  border-color: #3b8a6c;
+  background: #2f7d62;
   color: #f3f7f5;
   font-weight: 650;
 }
 
 .result-section .btn-copy-item:hover:not(:disabled) {
-  border-color: #4a9b7d;
-  background: #246b56;
+  border-color: #4b9b7e;
+  background: #37896c;
   color: #ffffff;
 }
 
 .result-section .btn-copy-item:active:not(:disabled) {
-  border-color: #2c705a;
-  background: #174b3d;
+  border-color: #347d63;
+  background: #276a53;
 }
 
 .result-section .btn-copy-item:focus-visible {
@@ -2198,8 +2198,39 @@ summary:focus-visible {
 
 .result-section .btn-copy-item.copied-btn {
   border-color: #4b8f73;
-  background: #294f42;
+  background: #285f4e;
   color: #c9e9dc;
+}
+
+.result-section .btn-retry {
+  min-width: 76px;
+  min-height: 44px;
+  border-color: #3b8a6c;
+  background: #26342f;
+  color: #cde3da;
+  font-weight: 620;
+}
+
+.result-section .btn-retry:hover:not(:disabled) {
+  border-color: #4b9b7e;
+  background: #2a463b;
+  color: #eef5f2;
+}
+
+.result-section .btn-retry:active:not(:disabled) {
+  border-color: #347d63;
+  background: #223b32;
+}
+
+.result-section .btn-retry:focus-visible {
+  outline-color: #79c3a6;
+  outline-offset: 3px;
+}
+
+.result-section .btn-retry:disabled {
+  border-color: #3c443f;
+  background: #292e2b;
+  color: #78817c;
 }
 
 .result-section .btn-retry-all {

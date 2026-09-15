@@ -94,6 +94,43 @@ The comparison confirms that the accepted white header, `#1C201E` hero, heading 
 
 final result: passed
 
+# V4.3 Result Action Hierarchy Design QA
+
+- Source visual truth: the prior PR #14 result-state capture `../v43-copy-favicon-qa/results-390.png`
+- Browser-rendered implementation: `../v43-result-actions-qa/results-390.png`
+- Same-state comparison: `../v43-result-actions-qa/comparison-result-actions-390.png`
+- Viewports checked: 320 × 760, 390 × 844, 768 × 900, and 1280 × 900 CSS px at device scale factor 1
+- State: 12-image mock result with success, failure, and duplicate rows
+
+## Full-view and focused comparison evidence
+
+The side-by-side 390 px comparison keeps the Compact Rows geometry, typography, thumbnails, status colors, edit links, dividers, and information density unchanged. The only visible hierarchy change is in the right-edge row actions: copy uses a clearer `#2F7D62` filled surface with off-white text, while retry uses the darker `#26342F` surface with a `#3B8A6C` outline. Both are immediately recognizable as actions, but copy remains the stronger control and edit remains tertiary.
+
+The 76 × 44 px controls remain within the existing action column without overlapping codes or edit links. Long-code, copied, disabled, individual-retry, and failed-only retry states preserve the same row structure. No glow, gradient, new iconography, or extra decoration was introduced.
+
+## Required fidelity surfaces
+
+- Typography: unchanged; code, state, metadata, edit, and action-label hierarchy remains consistent.
+- Spacing and layout: unchanged Compact Rows grid with 44 px minimum actions; no added card surface or width pressure.
+- Colors: copy is the strongest muted-emerald row action; retry is an outlined dark-emerald secondary action; edit stays muted.
+- Image quality: thumbnails and the favicon asset are unchanged in this pass.
+- Copy/content: labels remain `コピー`, `コピー済み`, `再読取`, and `編集`.
+
+## Verification
+
+- [x] 320/390/768/1280 responsive browser checks
+- [x] No horizontal overflow or vertical Japanese wrapping
+- [x] Copy and retry are each at least 76 × 44 px
+- [x] Long serial code does not overlap row actions
+- [x] Copy feedback returns to the default label after 1.8 seconds
+- [x] Individual retry, failed-only retry, copy all, CSV, and manual edit
+- [x] XSS regression and browser console checks
+- [x] Hero, upload UI, lower sections, feature JavaScript, `functions/api.js`, and SEO assets unchanged
+
+No actionable P0, P1, or P2 findings remain.
+
+final result: passed
+
 # V4.3 Favicon and Row Copy Design QA
 
 - Source visual truth: the released V4.3 result-state capture `../v43-lower-dark-qa/mobile-390-results-full.png` and the existing dark-charcoal/deep-emerald design tokens
