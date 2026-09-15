@@ -7,6 +7,8 @@
   <meta name="description" content="スマホで撮影した画像からシリアル番号・英数字コードを読み取り、複数画像をまとめてコピー・CSV保存できる無料Webツールです。">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://serial-reader-6nj.pages.dev/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta name="google-site-verification" content="fGx76-wsh6A1kU2FquFYTJdVnBDWmcRFBwPqO6xcvC8">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
@@ -2491,10 +2493,11 @@
           }
 
           const copyButton = document.createElement('button');
-          copyButton.className = item.copied ? 'btn-item copied-btn' : 'btn-item';
+          copyButton.className = item.copied ? 'btn-item btn-copy-item copied-btn' : 'btn-item btn-copy-item';
           copyButton.id = `copy-${index}`;
           copyButton.type = 'button';
           copyButton.textContent = item.copied ? 'コピー済み' : 'コピー';
+          copyButton.setAttribute('aria-label', item.copied ? `${index + 1}枚目の読み取り結果をコピーしました` : `${index + 1}枚目の読み取り結果をコピー`);
           copyButton.disabled = !item.code.trim();
           copyButton.addEventListener('click', () => copyOne(index));
           actions.appendChild(copyButton);
@@ -2693,13 +2696,28 @@
       try {
         await navigator.clipboard.writeText(code);
         item.copied = true;
+        item.copyFeedbackId = (item.copyFeedbackId || 0) + 1;
+        const feedbackId = item.copyFeedbackId;
         const card = document.getElementById(`item-${index}`);
         const button = document.getElementById(`copy-${index}`);
         if (card) card.classList.add('copied');
         if (button) {
           button.classList.add('copied-btn');
           button.textContent = 'コピー済み';
+          button.setAttribute('aria-label', `${index + 1}枚目の読み取り結果をコピーしました`);
         }
+        window.setTimeout(() => {
+          if (item.copyFeedbackId !== feedbackId) return;
+          item.copied = false;
+          const currentCard = document.getElementById(`item-${index}`);
+          const currentButton = document.getElementById(`copy-${index}`);
+          if (currentCard) currentCard.classList.remove('copied');
+          if (currentButton) {
+            currentButton.classList.remove('copied-btn');
+            currentButton.textContent = 'コピー';
+            currentButton.setAttribute('aria-label', `${index + 1}枚目の読み取り結果をコピー`);
+          }
+        }, 1800);
       } catch {
         alert('コピーできませんでした。ブラウザの設定をご確認ください。');
       }

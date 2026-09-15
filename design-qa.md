@@ -93,3 +93,78 @@ The comparison confirms that the accepted white header, `#1C201E` hero, heading 
 - [x] Existing IDs, event wiring, feature JavaScript, SEO metadata, sitemap, robots, and `functions/api.js` preserved
 
 final result: passed
+
+# V4.3 Result Action Hierarchy Design QA
+
+- Source visual truth: the prior PR #14 result-state capture `../v43-copy-favicon-qa/results-390.png`
+- Browser-rendered implementation: `../v43-result-actions-qa/results-390.png`
+- Same-state comparison: `../v43-result-actions-qa/comparison-result-actions-390.png`
+- Viewports checked: 320 × 760, 390 × 844, 768 × 900, and 1280 × 900 CSS px at device scale factor 1
+- State: 12-image mock result with success, failure, and duplicate rows
+
+## Full-view and focused comparison evidence
+
+The side-by-side 390 px comparison keeps the Compact Rows geometry, typography, thumbnails, status colors, edit links, dividers, and information density unchanged. The only visible hierarchy change is in the right-edge row actions: copy uses a clearer `#2F7D62` filled surface with off-white text, while retry uses the darker `#26342F` surface with a `#3B8A6C` outline. Both are immediately recognizable as actions, but copy remains the stronger control and edit remains tertiary.
+
+The 76 × 44 px controls remain within the existing action column without overlapping codes or edit links. Long-code, copied, disabled, individual-retry, and failed-only retry states preserve the same row structure. No glow, gradient, new iconography, or extra decoration was introduced.
+
+## Required fidelity surfaces
+
+- Typography: unchanged; code, state, metadata, edit, and action-label hierarchy remains consistent.
+- Spacing and layout: unchanged Compact Rows grid with 44 px minimum actions; no added card surface or width pressure.
+- Colors: copy is the strongest muted-emerald row action; retry is an outlined dark-emerald secondary action; edit stays muted.
+- Image quality: thumbnails and the favicon asset are unchanged in this pass.
+- Copy/content: labels remain `コピー`, `コピー済み`, `再読取`, and `編集`.
+
+## Verification
+
+- [x] 320/390/768/1280 responsive browser checks
+- [x] No horizontal overflow or vertical Japanese wrapping
+- [x] Copy and retry are each at least 76 × 44 px
+- [x] Long serial code does not overlap row actions
+- [x] Copy feedback returns to the default label after 1.8 seconds
+- [x] Individual retry, failed-only retry, copy all, CSV, and manual edit
+- [x] XSS regression and browser console checks
+- [x] Hero, upload UI, lower sections, feature JavaScript, `functions/api.js`, and SEO assets unchanged
+
+No actionable P0, P1, or P2 findings remain.
+
+final result: passed
+
+# V4.3 Favicon and Row Copy Design QA
+
+- Source visual truth: the released V4.3 result-state capture `../v43-lower-dark-qa/mobile-390-results-full.png` and the existing dark-charcoal/deep-emerald design tokens
+- Browser-rendered implementation: `../v43-copy-favicon-qa/results-390.png`
+- Focused copied-state evidence: `../v43-copy-favicon-qa/copy-feedback-390.png`
+- Desktop evidence: `../v43-copy-favicon-qa/results-1280.png`
+- Viewports checked: 320 × 760, 390 × 844, 768 × 900, and 1280 × 900 CSS px at device scale factor 1
+- Favicon asset evidence: `../v43-copy-favicon-qa/favicon-preview.png`
+
+## Full-view comparison evidence
+
+The implementation retains the released V4.3 header, hero, dark upload panel, Compact Rows, editorial sections, FAQ, and footer. The only visible result-list change is the per-row copy action: it now uses a restrained muted-emerald surface and off-white label, making it easier to find than the low-emphasis edit action without competing with the main upload CTA.
+
+## Focused comparison evidence
+
+- The copy control remains in the existing right-edge action column and keeps the Compact Rows information hierarchy.
+- Its 76 × 44 px minimum target is consistent at every checked viewport and does not overlap the code or edit control.
+- Hover, active, focus-visible, disabled, and copied states use the existing deep-emerald family without gradient, glow, or strong shadow.
+- After copying, the in-row label changes to `コピー済み`, exposes an updated accessible label, and quietly returns to `コピー` after 1.8 seconds.
+- A long serial-code regression pass produced no horizontal overflow and did not shrink or displace the copy action.
+- The favicon uses a charcoal square, four emerald focus corners, and a light center target. It remains legible when rasterized to the 32 px icon embedded in `/favicon.ico`.
+
+## Verification
+
+- [x] 320/390/768/1280 responsive browser checks
+- [x] No horizontal overflow or vertical Japanese wrapping
+- [x] Per-row copy targets remain at least 44 px high
+- [x] Copy, copied feedback, copy all, and CSV export
+- [x] Manual edit with long-code layout regression
+- [x] Individual failed-image retry and failed-only batch retry
+- [x] 12-image success/failure/duplicate mock state
+- [x] XSS regression with markup-like edited content
+- [x] Browser console free of application errors
+- [x] `/favicon.ico` returns HTTP 200 with an ICO header in the local production-like server
+- [x] Existing IDs, event wiring, AI code, SEO metadata, Search Console verification, sitemap, robots, and `functions/api.js` preserved
+
+final result: passed
