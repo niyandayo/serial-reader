@@ -1,12 +1,15 @@
+import { parseMultipleSerialOutput } from "./lib/serial-output.js";
+
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_BASE64_LENGTH = Math.ceil((MAX_IMAGE_SIZE_BYTES * 4) / 3) + 4;
 const MAX_JSON_BODY_SIZE_BYTES = 7 * 1024 * 1024;
-const SERIAL_CODE_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const BASE64_CHARACTER_PATTERN = /^[A-Za-z0-9+/=]+$/;
 const WORKERS_AI_PROVIDER = "workers_ai";
 const WORKERS_AI_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
-const WORKERS_AI_PROMPT = "写真に写っているシリアルコードと思われる英数字を正確に1つ読み取ってください。コードそのものだけを返し、説明文、Markdown、引用符、空白、余計な改行を付けないでください。推測で文字を補完しすぎず、大文字小文字とハイフン、アンダースコアを画像どおりに保ってください。";
+// Minified JSON for 10 codes of 128 ASCII characters is about 1,321 characters.
+const WORKERS_AI_MAX_TOKENS = 1536;
+const WORKERS_AI_PROMPT = "画像内に実際に写っているシリアルコードを、上から下、同じ高さなら左から右の順で最大10件読み取ってください。返答は必ずJSONオブジェクトのみとし、形式は{\"codes\":[\"ABC123\",\"DEF456\"]}にしてください。1件の場合も配列を使い、明確に読めるコードがない場合は{\"codes\":[]}としてください。各コードは英数字、ハイフン、アンダースコアだけの1〜128文字とし、大文字小文字と記号を画像どおりに保ってください。推測で文字を補わず、同じコードが複数箇所に写っている場合も出現順に残してください。説明文、Markdown、code fence、extra key、JSON文字列化したJSONは返さないでください。";
 
 const ERROR_MESSAGES = {
   invalid_input: "入力内容が正しくありません。画像を選び直してもう一度お試しください。",
@@ -126,10 +129,19 @@ function errorResponse({
   );
 }
 
-function successResponse({ requestId, code, startedAt }) {
+function successResponse({ requestId, codes, partial, discardedCount, startedAt }) {
   logApiResult({ requestId, status: 200, startedAt });
+  const body = {
+    code: codes[0],
+    codes,
+    requestId
+  };
+  if (partial) {
+    body.partial = true;
+    body.discardedCount = discardedCount;
+  }
   return jsonResponse(
-    { code, requestId },
+    body,
     200,
     { "X-Request-ID": requestId }
   );
@@ -270,7 +282,7 @@ async function callWorkersAi({ ai, imageBase64, mimeType }) {
       ],
       image: `data:${mimeType};base64,${imageBase64}`,
       temperature: 0,
-      max_tokens: 160,
+      max_tokens: WORKERS_AI_MAX_TOKENS,
       seed: 1
     });
   } catch (error) {
@@ -285,8 +297,8 @@ async function callWorkersAi({ ai, imageBase64, mimeType }) {
     return { ok: false, status: 502, errorCode: "invalid_upstream_response", retryable: true };
   }
 
-  const code = result.response.trim();
-  if (!SERIAL_CODE_PATTERN.test(code)) {
+  const parsedOutput = parseMultipleSerialOutput(result.response);
+  if (!parsedOutput.ok) {
     return {
       ok: false,
       status: 422,
@@ -295,7 +307,12 @@ async function callWorkersAi({ ai, imageBase64, mimeType }) {
     };
   }
 
-  return { ok: true, code };
+  return {
+    ok: true,
+    codes: parsedOutput.codes,
+    partial: parsedOutput.partial,
+    discardedCount: parsedOutput.discardedCount
+  };
 }
 
 export async function onRequest(context) {
@@ -364,5 +381,11 @@ export async function onRequest(context) {
     });
   }
 
-  return successResponse({ requestId, code: result.code, startedAt });
+  return successResponse({
+    requestId,
+    codes: result.codes,
+    partial: result.partial,
+    discardedCount: result.discardedCount,
+    startedAt
+  });
 }
